@@ -1,8 +1,10 @@
 ﻿#include "cqtabwidget.h"
 #include "cqtabbar.h"
 #include "mainwindow.h"
+#include "form.h"
 #include "cwindowmanager.h"
 #include <QApplication>
+#include <QFile>
 #include <QTimer>
 #include <QDebug>
 
@@ -19,7 +21,12 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     connect(m_tabbar, SIGNAL(tabDetachRequested(int,QPoint&)), this, SLOT(slotTabDetachRequested(int, QPoint&)));
     connect(m_tabbar, SIGNAL(tabCloseRequested(int))  , this, SLOT(slotTabCloseRequested(int)));
 
-    m_debug = "CQTabWidget";
+    // Apply styleSheet
+    QFile file(":/css/cqtabwidget.css");
+    file.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(file.readAll());
+    this->setStyleSheet(styleSheet);
+
 }
 
 CQTabWidget::~CQTabWidget()
@@ -74,9 +81,9 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
     CWindowManager::getInstance()->items()->insert(detachedWidget);
 
     // Find Widget and connect
-    QWidget* tearOffWidget = dynamic_cast <QWidget*> (widget (srcTabIndex));
+    Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
     this->removeTab(srcTabIndex);
-    detachedWidget->m_tabwidget->addTab(tearOffWidget, QString("new"));
+    detachedWidget->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 
     // Make first active
@@ -91,21 +98,10 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 
 void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
 {
-    QWidget* tearOffWidget = dynamic_cast <QWidget*> (widget (srcTabIndex));
+    Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
     this->removeTab(srcTabIndex);
-    mainwindow->m_tabwidget->addTab(tearOffWidget, QString("new"));
+    mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
-
-    // if the source form is empty, then close.
-    QWidget *srcWidget = this->parentWidget();
-    MainWindow *srcForm = NULL;
-    while(srcWidget != NULL) {
-        if((srcForm = qobject_cast<MainWindow*>(srcWidget)) != NULL &&
-                srcForm->m_tabwidget->count() == 0){
-            QTimer::singleShot(10, srcForm, SLOT(close()));
-        }
-        srcWidget=srcWidget->parentWidget();
-    }
 }
 
 void CQTabWidget::slotTabCloseRequested(int index)

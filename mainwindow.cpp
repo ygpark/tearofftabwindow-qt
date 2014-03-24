@@ -3,6 +3,7 @@
 #include "cqtabbar.h"
 #include "cqtabwidget.h"
 #include "cwindowmanager.h"
+#include "form.h"
 #include <QToolButton>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -16,14 +17,14 @@ MainWindow::MainWindow(QWidget *parent) :
     this->Initialize();
 }
 
-MainWindow::MainWindow(QWidget *form, QWidget *parent) :
+MainWindow::MainWindow(Form *form, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     this->Initialize();
 
-    m_tabwidget->addTab(form, QString("New"));
+    this->addTab(qobject_cast<Form*>(form));
 }
 
 
@@ -34,7 +35,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::closeEvent ( QCloseEvent * event )
+void MainWindow::closeEvent (QCloseEvent* /*event*/)
 {
     CWindowManager::garbageCollection();
 }
@@ -46,15 +47,17 @@ void MainWindow::Initialize()
     m_tabwidget = new CQTabWidget(NULL);
     m_tabwidget->setParent(this);
     this->setCentralWidget(m_tabwidget);
+    this->setFocus();
 
     CWindowManager::garbageCollection();
-
-
 }
 
+void MainWindow::addTab(Form *widget)
+{
+    m_tabwidget->addTab(widget, widget->getTabName());
+}
 
 void MainWindow::pushbutton_OnClick()
 {
-   // tabwidget->addTab(new QWidget(this), QString("new"));
-}
 
+}

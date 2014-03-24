@@ -13,13 +13,16 @@ class Form : public QWidget
     
 public:
     explicit Form(QWidget *parent = 0);
-    ~Form();
+    explicit Form(QString tabName, QWidget *parent = 0);
+    virtual ~Form();
+    QString getTabName();
+    void setTabName(QString tabName);
     
 private slots:
     void pushbutton_OnClicked();
-
 private:
     Ui::Form *ui;
+    QString tabName;
 };
 
 #endif // FORM_H

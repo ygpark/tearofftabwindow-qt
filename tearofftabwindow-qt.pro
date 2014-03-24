@@ -25,3 +25,9 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui \
     form.ui
+
+RESOURCES += \
+    qtabwidget.qrc
+
+OTHER_FILES += \
+    css/cqtabwidget.css

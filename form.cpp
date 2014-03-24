@@ -13,8 +13,14 @@ Form::Form(QWidget *parent) :
     ui(new Ui::Form)
 {
     ui->setupUi(this);
-//    QToolBar *toolbar = new QToolBar(this);
-//    toolbar->show();
+}
+
+Form::Form(QString tabName, QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::Form)
+{
+    ui->setupUi(this);
+    this->tabName = tabName;
 }
 
 Form::~Form()
@@ -24,12 +30,17 @@ Form::~Form()
 
 void Form::pushbutton_OnClicked()
 {
-    //qDebug() << this->parent()->parent()->objectName();
-    CWindowManager *windowlist = CWindowManager::getInstance();
-    MainWindow* window = qobject_cast<MainWindow*>(*windowlist->items()->begin());
-    window->m_tabwidget->addTab(new Form(this), QString("1"));
-    //qDebug() << windowlist->items()->at(0)->objectName();
-    //MainWindow *mainwindow = dynamic_cast<MainWindow*> (this->parentWidget()->parentWidget());
-    //mainwindow->m_tabwidget;//->addTab(new QWidget(this), QString("1"));
-    //qDebug() << mainwindow->m_tabwidget->m_debug;//->addTab(new QWidget(this), QString("1"));
+    MainWindow* window = CWindowManager::findMainWindow(this);
+    Form *form = new Form("NewTab");
+    window->m_tabwidget->addTab(form, form->getTabName());
+}
+
+QString Form::getTabName()
+{
+    return this->tabName;
+}
+
+void Form::setTabName(QString tabName)
+{
+    this->tabName = tabName;
 }

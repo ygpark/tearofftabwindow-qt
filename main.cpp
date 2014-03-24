@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Form *form = new Form(NULL);
+    Form *form = new Form("TabName");
     MainWindow w(form, NULL);
     w.show();
 

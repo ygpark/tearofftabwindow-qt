@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 class CQTabWidget;
+class Form;
 
 namespace Ui {
 class MainWindow;
@@ -15,9 +16,11 @@ class MainWindow : public QMainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0);
-    explicit MainWindow(QWidget *form, QWidget *parent);
+    explicit MainWindow(Form *form, QWidget *parent);
     virtual ~MainWindow();
     virtual void closeEvent (QCloseEvent * event);
+
+    void addTab(Form *widget);
 
 private:
     void Initialize();

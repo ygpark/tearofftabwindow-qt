@@ -34,7 +34,6 @@ signals:
 
 private:
     CQTabBar *m_tabbar;
-    QString m_debug;
 };
 
 #endif // CQTABWIDGET_H
