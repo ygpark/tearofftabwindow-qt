@@ -55,19 +55,20 @@ void CQTabWidget::MoveTab(int fromIndex, int toIndex)
 
 void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
 {
-    //지가 지꺼위에서는 안들어가게 처리
-    // Check if it is on the other window,
-
     QWidget *widgetAtCursor = QApplication::widgetAt(QCursor::pos ());
 
-    MainWindow *mainwindow = CWindowManager::findMainWindow(widgetAtCursor);
+    MainWindow *mainWindowOnCursor = CWindowManager::findMainWindow(widgetAtCursor);
+    MainWindow *myMainwindow = CWindowManager::findMainWindow(this);
 
-    // Then move the tab to the window.
-    if(mainwindow == NULL) {
+    // cursor on the sky
+    if(mainWindowOnCursor == NULL) {
         this->attachTabToNewMainwindow(index);
-    }else if(mainwindow != NULL) {
-        // move it.
-        attachTab(index, mainwindow);
+    }else if(mainWindowOnCursor != NULL && mainWindowOnCursor == myMainwindow) {
+        // cursor on the my area
+        this->attachTabToNewMainwindow(index);
+    } else {
+        // cursor on the other area
+        attachTab(index, mainWindowOnCursor);
     }
 
     // Remove mainwindows that has no tab.
