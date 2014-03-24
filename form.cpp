@@ -1,4 +1,4 @@
-﻿#include "form.h"
+#include "form.h"
 #include "ui_form.h"
 #include "mainwindow.h"
 #include "cqtabwidget.h"

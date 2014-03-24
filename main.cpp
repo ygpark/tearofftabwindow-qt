@@ -1,4 +1,4 @@
-﻿#include <QtGui/QApplication>
+#include <QtGui/QApplication>
 #include "mainwindow.h"
 #include "form.h"
 #include "cwindowmanager.h"

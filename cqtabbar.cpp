@@ -1,4 +1,4 @@
-﻿#include "cqtabbar.h"
+#include "cqtabbar.h"
 #include "cqtabwidget.h"
 #include <QMouseEvent>
 #include <QMimeData>

@@ -1,4 +1,4 @@
-﻿#include "cwindowmanager.h"
+#include "cwindowmanager.h"
 
 #include "mainwindow.h"
 #include "cqtabwidget.h"

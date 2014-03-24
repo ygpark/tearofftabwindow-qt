@@ -1,4 +1,4 @@
-﻿#ifndef CMAINWINDOWLIST_H
+#ifndef CMAINWINDOWLIST_H
 #define CMAINWINDOWLIST_H
 
 #include <QSet>
