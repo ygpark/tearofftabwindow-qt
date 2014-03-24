@@ -6,6 +6,8 @@
 #include <QApplication>
 #include <QFile>
 #include <QTimer>
+#include <QPushButton>
+
 #include <QDebug>
 
 CQTabWidget::CQTabWidget(QWidget *parent) :
@@ -27,6 +29,11 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     QString styleSheet = QLatin1String(file.readAll());
     this->setStyleSheet(styleSheet);
 
+    //margin
+    QPushButton * paddingRight = new QPushButton();
+    paddingRight->setGeometry(0,0,200,paddingRight->height());
+    paddingRight->hide();
+    this->setCornerWidget(paddingRight, Qt::TopRightCorner);
 }
 
 CQTabWidget::~CQTabWidget()
