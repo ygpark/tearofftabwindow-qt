@@ -91,7 +91,7 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
     // Find Widget and connect
     Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
     this->removeTab(srcTabIndex);
-    detachedWidget->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    int newIndex = detachedWidget->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 
     // Make first active
@@ -102,19 +102,31 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 
     detachedWidget->move(QCursor::pos());
     detachedWidget->show ();
+
+    emit tabAttached(newIndex);
+}
+
+int CQTabWidget::addTab(QWidget *widget, const QString &tabName)
+{
+    int newIndex = QTabWidget::addTab(widget, tabName);
+
+    emit tabAttached(newIndex);
+    return newIndex;
 }
 
 void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
 {
     Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
     this->removeTab(srcTabIndex);
-    mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    int newIndex = mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
+    emit tabAttached(newIndex);
 }
 
 void CQTabWidget::slotTabCloseRequested(int index)
 {
     this->removeTab(index);
-    if(this->count()==0)
-        CWindowManager::findMainWindow(this)->close();
+
+    CWindowManager::garbageCollection();
+    emit tabClosed(index);
 }

@@ -14,6 +14,7 @@ public:
     virtual ~CQTabWidget();
 
     void Initialize();
+    virtual int addTab(QWidget *widget, const QString &);
 
 private:
     void attachTab(int srcTabIndex, MainWindow* mainwindow);
@@ -30,9 +31,11 @@ public slots:
     void slotTabCloseRequested(int);
 
 signals:
-    void newWindowCreated(QWidget*);
+    void tabClosed(int index);
+    void tabAttached(int index);
 
-private:
+
+public:
     CQTabBar *m_tabbar;
 };
 

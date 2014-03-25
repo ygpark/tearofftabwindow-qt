@@ -28,13 +28,6 @@ Form::~Form()
     delete ui;
 }
 
-void Form::pushbutton_OnClicked()
-{
-    MainWindow* window = CWindowManager::findMainWindow(this);
-    Form *form = new Form("NewTab");
-    window->m_tabwidget->addTab(form, form->getTabName());
-}
-
 QString Form::getTabName()
 {
     return this->tabName;

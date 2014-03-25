@@ -19,7 +19,7 @@ public:
     void setTabName(QString tabName);
     
 private slots:
-    void pushbutton_OnClicked();
+
 private:
     Ui::Form *ui;
     QString tabName;

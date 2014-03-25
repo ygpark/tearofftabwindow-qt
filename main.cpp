@@ -11,9 +11,8 @@ int main(int argc, char *argv[])
     MainWindow w(form, NULL);
     w.show();
 
-    CWindowManager *list = CWindowManager::getInstance();
-    list->items()->insert(&w);
-
+    CWindowManager *manager = CWindowManager::getInstance();
+    manager->items()->insert(&w);
     
     return a.exec();
 }

@@ -7,6 +7,7 @@
 #include <QToolButton>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QPushButton>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -31,6 +32,7 @@ MainWindow::MainWindow(Form *form, QWidget *parent) :
 MainWindow::~MainWindow()
 {
     qDebug() << "MainWindow::~MainWindow";
+    delete m_btnAddTab;
     delete m_tabwidget;
     delete ui;
 }
@@ -49,15 +51,34 @@ void MainWindow::Initialize()
     this->setCentralWidget(m_tabwidget);
     this->setFocus();
 
-    CWindowManager::garbageCollection();
+    // AddTabButton
+    m_btnAddTab = new QPushButton("+", this);
+    connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_Clicked()));
 }
 
 void MainWindow::addTab(Form *widget)
 {
-    m_tabwidget->addTab(widget, widget->getTabName());
+    int index = m_tabwidget->addTab(widget, widget->getTabName());
+    m_tabwidget->setCurrentIndex(index);
 }
 
-void MainWindow::pushbutton_OnClick()
+void MainWindow::redrawAddTabButton()
 {
+    m_btnAddTab->setGeometry(m_tabwidget->m_tabbar->width()+8
+                             , m_tabwidget->y()+2
+                             , 25
+                             , 25);
+}
 
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+    QMainWindow::paintEvent(event);
+    this->redrawAddTabButton();
+    //this->redrawTabBarWidth();
+}
+
+void MainWindow::slotAddTabButton_Clicked()
+{
+    Form *form = new Form("NewTab");
+    this->addTab(form);
 }

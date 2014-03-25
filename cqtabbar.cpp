@@ -5,11 +5,12 @@
 #include <QPainter>
 #include <QApplication>
 #include <QDrag>
+#include <QDebug>
 #if QT_VERSION >= 0x050000
 #include <QScreen>
 #endif
 
-#include <QDebug>
+
 
 CQTabBar::CQTabBar(QWidget *parent) :
     QTabBar(parent)
@@ -65,11 +66,11 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
 
         // Initiate Drag
         //   [Warning] Do not delete drag. or you can see error about Mutex::lock()
-        QDrag* drag = new QDrag(this);
+        QDrag drag(this);
         QMimeData* mimeData = new QMimeData;
         // a crude way to distinguish tab-reordering drops from other ones
         mimeData->setData("action", "application/tab-detach") ;
-        drag->setMimeData(mimeData);
+        drag.setMimeData(mimeData);
 
         // Create transparent screen dump
 #if QT_VERSION >= 0x050000
@@ -90,11 +91,11 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
         painter.setOpacity (0.1);
         painter.drawPixmap (0,0, pixmap);
         painter.end ();
-        drag->setPixmap (targetPixmap);
-            drag->setHotSpot (QPoint (20, 10));
+        drag.setPixmap (targetPixmap);
+            //drag->setHotSpot (QPoint (20, 10));
 
         // Handle Detach and Move
-        Qt::DropAction dragged = drag->exec (Qt::CopyAction);
+        Qt::DropAction dragged = drag.exec (Qt::CopyAction);
         if (Qt::IgnoreAction == dragged) {
             event->accept ();
             emit tabDetachRequested (tabAt(m_dragStartPos), m_dragDropedPos);

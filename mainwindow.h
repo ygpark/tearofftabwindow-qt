@@ -5,6 +5,7 @@
 
 class CQTabWidget;
 class Form;
+class QPushButton;
 
 namespace Ui {
 class MainWindow;
@@ -21,17 +22,20 @@ public:
     virtual void closeEvent (QCloseEvent * event);
 
     void addTab(Form *widget);
+    void paintEvent(QPaintEvent *event);
 
 private:
     void Initialize();
+    void redrawAddTabButton();
     
 public slots:
-    void pushbutton_OnClick();
+    void slotAddTabButton_Clicked();
 
 private:
     Ui::MainWindow *ui;
 public:
     CQTabWidget *m_tabwidget;
+    QPushButton *m_btnAddTab;
 };
 
 #endif // MAINWINDOW_H
