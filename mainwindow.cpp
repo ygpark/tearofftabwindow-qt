@@ -66,8 +66,8 @@ void MainWindow::redrawAddTabButton()
 {
     m_btnAddTab->setGeometry(m_tabwidget->m_tabbar->width()+8
                              , m_tabwidget->y()+2
-                             , 25
-                             , 25);
+                             , 20
+                             , 20);
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
