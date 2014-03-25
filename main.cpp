@@ -1,7 +1,7 @@
-#include <QtGui/QApplication>
 #include "mainwindow.h"
 #include "form.h"
 #include "cwindowmanager.h"
+#include <QApplication>
 
 int main(int argc, char *argv[])
 {

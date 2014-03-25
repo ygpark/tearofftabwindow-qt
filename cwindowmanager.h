@@ -3,6 +3,7 @@
 
 #include <QSet>
 
+class QWidget;
 class MainWindow;
 
 class CWindowManager

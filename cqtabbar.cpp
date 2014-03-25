@@ -4,6 +4,7 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QApplication>
+#include <QDrag>
 #include <QDebug>
 
 CQTabBar::CQTabBar(QWidget *parent) :
