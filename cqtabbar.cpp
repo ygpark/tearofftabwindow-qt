@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QApplication>
 #include <QDrag>
+#include <QScreen>
+
 #include <QDebug>
 
 CQTabBar::CQTabBar(QWidget *parent) :
@@ -67,12 +69,19 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
         mimeData->setData("action", "application/tab-detach") ;
         drag->setMimeData(mimeData);
 
-        //TODO: this has an issue that shows diffent screen dump on linux.
         // Create transparent screen dump
-        QPixmap pixmap = QPixmap::grabWindow (dynamic_cast <CQTabWidget*> (parentWidget ())->currentWidget ()->winId ()).scaled (640, 480, Qt::KeepAspectRatio);
+        QScreen *screen = QGuiApplication::primaryScreen();
+        CQTabWidget *tabWidget = dynamic_cast <CQTabWidget*> (parentWidget ());
+        QPixmap pixmap = screen->grabWindow (tabWidget->currentWidget ()->winId ()
+                                             , tabWidget->x()
+                                             , tabWidget->y());
+        // scale down
+        if(pixmap.width() > 640 || pixmap.height() > 480) {
+            pixmap = pixmap.scaled(640, 480, Qt::KeepAspectRatio);
+        }
         QPixmap targetPixmap (pixmap.size ());
         QPainter painter (&targetPixmap);
-        painter.setOpacity (0.5);
+        painter.setOpacity (0.1);
         painter.drawPixmap (0,0, pixmap);
         painter.end ();
         drag->setPixmap (targetPixmap);
