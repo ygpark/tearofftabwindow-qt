@@ -5,7 +5,9 @@
 #include <QPainter>
 #include <QApplication>
 #include <QDrag>
+#if QT_VERSION >= 0x050000
 #include <QScreen>
+#endif
 
 #include <QDebug>
 
@@ -70,11 +72,15 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
         drag->setMimeData(mimeData);
 
         // Create transparent screen dump
+#if QT_VERSION >= 0x050000
         QScreen *screen = QGuiApplication::primaryScreen();
         CQTabWidget *tabWidget = dynamic_cast <CQTabWidget*> (parentWidget ());
         QPixmap pixmap = screen->grabWindow (tabWidget->currentWidget ()->winId ()
                                              , tabWidget->x()
                                              , tabWidget->y());
+#else
+        QPixmap pixmap = QPixmap::grabWindow (dynamic_cast <CQTabWidget*> (parentWidget ())->currentWidget ()->winId ()).scaled (640, 480, Qt::KeepAspectRatio);
+#endif
         // scale down
         if(pixmap.width() > 640 || pixmap.height() > 480) {
             pixmap = pixmap.scaled(640, 480, Qt::KeepAspectRatio);
