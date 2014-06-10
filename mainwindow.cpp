@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "cqtabbar.h"
 #include "cqtabwidget.h"
@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QDebug>
 
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -18,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->Initialize();
 }
 
+
+
 MainWindow::MainWindow(Form *form, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -25,8 +29,9 @@ MainWindow::MainWindow(Form *form, QWidget *parent) :
     ui->setupUi(this);
     this->Initialize();
 
-    this->addTab(qobject_cast<Form*>(form));
+    this->addTab(form);
 }
+
 
 
 MainWindow::~MainWindow()
@@ -37,10 +42,14 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+
 void MainWindow::closeEvent (QCloseEvent* /*event*/)
 {
     CWindowManager::garbageCollection();
 }
+
+
 
 void MainWindow::Initialize()
 {
@@ -54,7 +63,11 @@ void MainWindow::Initialize()
     // AddTabButton
     m_btnAddTab = new QPushButton("+", this);
     connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_Clicked()));
+    m_tabwidget->setCornerWidget(m_btnAddTab, Qt::TopLeftCorner);
+
 }
+
+
 
 void MainWindow::addTab(Form *widget)
 {
@@ -62,20 +75,14 @@ void MainWindow::addTab(Form *widget)
     m_tabwidget->setCurrentIndex(index);
 }
 
-void MainWindow::redrawAddTabButton()
-{
-    m_btnAddTab->setGeometry(m_tabwidget->m_tabbar->width()+8
-                             , m_tabwidget->y()+2
-                             , 20
-                             , 20);
-}
+
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     QMainWindow::paintEvent(event);
-    this->redrawAddTabButton();
-    //this->redrawTabBarWidth();
 }
+
+
 
 void MainWindow::slotAddTabButton_Clicked()
 {

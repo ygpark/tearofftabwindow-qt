@@ -1,4 +1,4 @@
-#include "cqtabwidget.h"
+﻿#include "cqtabwidget.h"
 #include "cqtabbar.h"
 #include "mainwindow.h"
 #include "form.h"
@@ -7,13 +7,15 @@
 #include <QFile>
 #include <QTimer>
 #include <QPushButton>
-
+#include <QMouseEvent>
 #include <QDebug>
+
+
 
 CQTabWidget::CQTabWidget(QWidget *parent) :
     QTabWidget(parent)
 {
-    this->Initialize();
+    this->initialize();
 
     m_tabbar = new CQTabBar(this);
     this->setTabBar(m_tabbar);
@@ -29,12 +31,19 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     QString styleSheet = QLatin1String(file.readAll());
     this->setStyleSheet(styleSheet);
 
-    //margin
+    // dummy button for margin
     QPushButton * paddingRight = new QPushButton();
     paddingRight->setGeometry(0,0,200,paddingRight->height());
     paddingRight->hide();
     this->setCornerWidget(paddingRight, Qt::TopRightCorner);
+
+    this->slotUpdateTabWidth(true);
+
+    m_tabWidth = 200;
+    this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
 }
+
+
 
 CQTabWidget::~CQTabWidget()
 {
@@ -43,10 +52,14 @@ CQTabWidget::~CQTabWidget()
     }
 }
 
-void CQTabWidget::Initialize()
+
+
+void CQTabWidget::initialize()
 {
     m_tabbar = NULL;
 }
+
+
 
 void CQTabWidget::MoveTab(int fromIndex, int toIndex)
 {
@@ -59,6 +72,8 @@ void CQTabWidget::MoveTab(int fromIndex, int toIndex)
     insertTab (toIndex, w, icon, text);
     setCurrentIndex (toIndex);
 }
+
+
 
 void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
 {
@@ -81,6 +96,8 @@ void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
     // Remove mainwindows that has no tab.
     CWindowManager::garbageCollection();
 }
+
+
 
 void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 {
@@ -106,13 +123,78 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
     emit tabAttached(newIndex);
 }
 
-int CQTabWidget::addTab(QWidget *widget, const QString &tabName)
+
+
+void CQTabWidget::slotUpdateTabWidth()
+{
+    slotUpdateTabWidth(true);
+}
+
+
+
+void CQTabWidget::slotUpdateTabWidth(bool force)
+{
+    int margin = 0;
+    int count;
+    QWidget* topRightCornerWidget = 0;
+    QWidget* topLeftCornerWidget = 0;
+
+    count = (this->count() == 0) ? 1 : this->count();
+    topRightCornerWidget = this->cornerWidget(Qt::TopRightCorner);
+    topLeftCornerWidget = this->cornerWidget(Qt::TopLeftCorner);
+
+    if(topRightCornerWidget)
+        margin += topRightCornerWidget->width();
+    if(topLeftCornerWidget)
+        margin += topLeftCornerWidget->width();
+
+    m_tabWidth = (this->width()- margin) / count;
+
+    if(m_tabWidth > 200 || m_tabWidth < 0) {
+        m_tabWidth = 200;
+    }
+
+    if(!this->customTabBar()->underMouse() || force) {
+        this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
+    }
+}
+
+
+
+int CQTabWidget::addTab(Form *widget, const QString &tabName)
 {
     int newIndex = QTabWidget::addTab(widget, tabName);
+    connect(widget, SIGNAL(mouseMoved()), this, SLOT(slotUpdateTabWidth()));
+    slotUpdateTabWidth();
 
     emit tabAttached(newIndex);
     return newIndex;
 }
+
+
+
+CQTabBar *CQTabWidget::customTabBar()
+{
+    return this->m_tabbar;
+}
+
+
+
+void CQTabWidget::paintEvent(QPaintEvent *event)
+{
+    this->slotUpdateTabWidth(false);
+    QTabWidget::paintEvent(event);
+}
+
+
+
+void CQTabWidget::resizeEvent(QResizeEvent *event)
+{
+    this->slotUpdateTabWidth(false);
+    QTabWidget::resizeEvent(event);
+}
+
+
 
 void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
 {
@@ -122,6 +204,8 @@ void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
     tearOffWidget->show();
     emit tabAttached(newIndex);
 }
+
+
 
 void CQTabWidget::slotTabCloseRequested(int index)
 {

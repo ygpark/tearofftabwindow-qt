@@ -1,4 +1,4 @@
-#include "cqtabbar.h"
+﻿#include "cqtabbar.h"
 #include "cqtabwidget.h"
 #include <QMouseEvent>
 #include <QMimeData>
@@ -19,8 +19,18 @@ CQTabBar::CQTabBar(QWidget *parent) :
     setElideMode(Qt::ElideRight);
     setSelectionBehaviorOnRemove (QTabBar::SelectLeftTab);
     setMovable (true);
-    setStyleSheet("QTabBar::tab { width: 100px; }");
+    installEventFilter(this);
+    m_canUpdate = false;
 }
+
+
+
+bool CQTabBar::canUpdate()
+{
+    return this->m_canUpdate;
+}
+
+
 
 void CQTabBar::mousePressEvent(QMouseEvent* event)
 {
@@ -39,9 +49,10 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
     QTabBar::mousePressEvent(event);
 }
 
+
+
 void CQTabBar::mouseMoveEvent(QMouseEvent* event)
 {
-    qDebug() << "CQTabBar::mouseMoveEvent";
     // Distinguish a drag
     if ( !m_dragStartPos.isNull () &&
          ((event->pos() - m_dragStartPos).manhattanLength() < QApplication::startDragDistance()) )
@@ -72,27 +83,34 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
         mimeData->setData("action", "application/tab-detach") ;
         drag.setMimeData(mimeData);
 
+
         // Create transparent screen dump
-#if QT_VERSION >= 0x050000
-        QScreen *screen = QGuiApplication::primaryScreen();
-        CQTabWidget *tabWidget = dynamic_cast <CQTabWidget*> (parentWidget ());
-        QPixmap pixmap = screen->grabWindow (tabWidget->currentWidget ()->winId ()
-                                             , tabWidget->x()
-                                             , tabWidget->y());
-#else
-        QPixmap pixmap = QPixmap::grabWindow (dynamic_cast <CQTabWidget*> (parentWidget ())->currentWidget ()->winId ()).scaled (640, 480, Qt::KeepAspectRatio);
-#endif
-        // scale down
-        if(pixmap.width() > 640 || pixmap.height() > 480) {
-            pixmap = pixmap.scaled(640, 480, Qt::KeepAspectRatio);
-        }
-        QPixmap targetPixmap (pixmap.size ());
-        QPainter painter (&targetPixmap);
-        painter.setOpacity (0.1);
-        painter.drawPixmap (0,0, pixmap);
-        painter.end ();
-        drag.setPixmap (targetPixmap);
-            //drag->setHotSpot (QPoint (20, 10));
+
+        //-----------------------------------------------------------
+        // TODO: 이부분에서 crash되는 버그있음.
+        //-----------------------------------------------------------
+//#if QT_VERSION >= 0x050000
+//        QScreen *screen = QGuiApplication::primaryScreen();
+//        CQTabWidget *tabWidget = dynamic_cast <CQTabWidget*> (parentWidget ());
+//        QPixmap pixmap = screen->grabWindow (tabWidget->currentWidget ()->winId ()
+//                                             , tabWidget->x()
+//                                             , tabWidget->y());
+//#else
+//        QPixmap pixmap = QPixmap::grabWindow (dynamic_cast <CQTabWidget*> (parentWidget ())->currentWidget ()->winId ()).scaled (640, 480, Qt::KeepAspectRatio);
+//#endif
+//        // scale down
+//        if(pixmap.width() > 640 || pixmap.height() > 480) {
+//            pixmap = pixmap.scaled(640, 480, Qt::KeepAspectRatio);
+//        }
+//        QPixmap targetPixmap (pixmap.size ());
+//        QPainter painter (&targetPixmap);
+//        painter.setOpacity (0.1);
+//        painter.drawPixmap (0,0, pixmap);
+//        painter.end ();
+//        drag.setPixmap (targetPixmap);
+        //-----------------------------------------------------------
+
+        //drag->setHotSpot (QPoint (20, 10));
 
         // Handle Detach and Move
         Qt::DropAction dragged = drag.exec (Qt::CopyAction);
@@ -104,6 +122,8 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
         QTabBar::mouseMoveEvent(event);
     }
 }
+
+
 
 void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
@@ -117,6 +137,8 @@ void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
     }
     QTabBar::dragEnterEvent(event);
 }
+
+
 
 void CQTabBar::dragMoveEvent(QDragMoveEvent* event)
 {
@@ -132,6 +154,8 @@ void CQTabBar::dragMoveEvent(QDragMoveEvent* event)
     QTabBar::dragMoveEvent (event);
 }
 
+
+
 void CQTabBar::dropEvent(QDropEvent* event)
 {
     qDebug() << "CQTabBar::dropEvent";
@@ -139,4 +163,22 @@ void CQTabBar::dropEvent(QDropEvent* event)
     // a move.
     //m_dragDropedPos = event->pos ();
     QTabBar::dropEvent(event);
+}
+
+
+
+bool CQTabBar::eventFilter(QObject *object, QEvent *event){
+    if(object==this) {
+        if(event->type() == QEvent::Enter ||
+           event->type() == QEvent::HoverEnter ||
+                event->type() == QEvent::HoverMove) {
+            m_canUpdate = true;
+        } else if(event->type() == QEvent::Leave ||
+                  event->type() == QEvent::HoverLeave) {
+            m_canUpdate = false;
+        }
+    } else if(object==this && !(event->type()==QEvent::Enter || event->type()==QEvent::Leave)) {
+        qDebug() << event->type();
+    }
+    return false;
 }

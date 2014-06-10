@@ -1,10 +1,15 @@
-#ifndef CQTABWIDGET_H
+﻿#ifndef CQTABWIDGET_H
 #define CQTABWIDGET_H
 
 #include <QTabWidget>
+#include <QResizeEvent>
+
+
 
 class CQTabBar;
 class MainWindow;
+class Form;
+
 
 class CQTabWidget : public QTabWidget
 {
@@ -13,22 +18,28 @@ public:
     explicit CQTabWidget(QWidget *parent = 0);
     virtual ~CQTabWidget();
 
-    void Initialize();
-    virtual int addTab(QWidget *widget, const QString &);
+    void initialize();
+    virtual int addTab(Form *widget, const QString &);
+    CQTabBar* customTabBar();
+
+protected:
+    virtual void paintEvent(QPaintEvent *event);
+    virtual void resizeEvent (QResizeEvent *event);
 
 private:
     void attachTab(int srcTabIndex, MainWindow* mainwindow);
     void attachTabToNewMainwindow(int srcTabIndex);
-
+    //void setTabWidth(int width = -1);
 
 
 public slots:
     // Move Tab
     void MoveTab(int fromIndex, int toIndex);
-
     // Detach Tab
     void slotTabDetachRequested (int index, QPoint&);
     void slotTabCloseRequested(int);
+    void slotUpdateTabWidth();
+    void slotUpdateTabWidth(bool force);
 
 signals:
     void tabClosed(int index);
@@ -37,6 +48,7 @@ signals:
 
 public:
     CQTabBar *m_tabbar;
+    int m_tabWidth;
 };
 
 #endif // CQTABWIDGET_H

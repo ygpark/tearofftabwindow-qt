@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -22,12 +22,12 @@ public:
     virtual void closeEvent (QCloseEvent * event);
 
     void addTab(Form *widget);
-    void paintEvent(QPaintEvent *event);
+    virtual void paintEvent(QPaintEvent *event);
 
 private:
     void Initialize();
-    void redrawAddTabButton();
-    
+    //void redrawAddTabButton();
+
 public slots:
     void slotAddTabButton_Clicked();
 

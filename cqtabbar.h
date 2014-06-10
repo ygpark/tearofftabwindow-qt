@@ -1,4 +1,4 @@
-#ifndef CQTABBAR_H
+﻿#ifndef CQTABBAR_H
 #define CQTABBAR_H
 
 #include <QTabBar>
@@ -8,6 +8,7 @@ class CQTabBar : public QTabBar
     Q_OBJECT
 public:
     explicit CQTabBar(QWidget *parent = 0);
+    bool canUpdate();
     
 signals:
     
@@ -20,6 +21,7 @@ protected:
     virtual void dragMoveEvent(QDragMoveEvent* event);
     virtual void dropEvent(QDropEvent* event);
 
+    bool eventFilter(QObject *object, QEvent *event);
 signals:
     // Detach Tab
     void tabDetachRequested (int index, QPoint& dropPoint);
@@ -32,6 +34,7 @@ private:
     QPoint       m_dragDropedPos;
     bool         m_dragInitiated;
     int          m_dragCurrentIndex;
+    bool         m_canUpdate;
 
 };
 

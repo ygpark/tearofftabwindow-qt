@@ -1,4 +1,4 @@
-#include "cwindowmanager.h"
+﻿#include "cwindowmanager.h"
 
 #include "mainwindow.h"
 #include "cqtabwidget.h"
@@ -21,6 +21,8 @@ CWindowManager::CWindowManager()
 
 }
 
+
+
 CWindowManager* CWindowManager::getInstance()
 {
     if(CWindowManager::m_instance == NULL)
@@ -30,10 +32,14 @@ CWindowManager* CWindowManager::getInstance()
     return CWindowManager::m_instance;
 }
 
+
+
 QSet<MainWindow*>* CWindowManager::items()
 {
     return &m_list;
 }
+
+
 
 void CWindowManager::garbageCollection()
 {
@@ -46,6 +52,8 @@ void CWindowManager::garbageCollection()
         }
     }
 }
+
+
 
 MainWindow* CWindowManager::findMainWindow(QWidget *widget)
 {
