@@ -64,7 +64,6 @@ void MainWindow::Initialize()
     m_btnAddTab = new QPushButton("+", this);
     connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_Clicked()));
     m_tabwidget->setCornerWidget(m_btnAddTab, Qt::TopLeftCorner);
-
 }
 
 
@@ -73,13 +72,6 @@ void MainWindow::addTab(Form *widget)
 {
     int index = m_tabwidget->addTab(widget, widget->getTabName());
     m_tabwidget->setCurrentIndex(index);
-}
-
-
-
-void MainWindow::paintEvent(QPaintEvent *event)
-{
-    QMainWindow::paintEvent(event);
 }
 
 

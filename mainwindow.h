@@ -22,7 +22,6 @@ public:
     virtual void closeEvent (QCloseEvent * event);
 
     void addTab(Form *widget);
-    virtual void paintEvent(QPaintEvent *event);
 
 private:
     void Initialize();
