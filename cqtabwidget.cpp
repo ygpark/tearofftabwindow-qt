@@ -37,7 +37,7 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     paddingRight->hide();
     this->setCornerWidget(paddingRight, Qt::TopRightCorner);
 
-    this->slotUpdateTabWidth(true);
+    this->slotForceUpdateTabWidth();
 
     m_tabWidth = 200;
     this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
@@ -124,22 +124,34 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 }
 
 
-
-void CQTabWidget::slotUpdateTabWidth()
+/**
+ * @brief [slot] 탭의 간격을 계산하여 적절한 넓이로 다시 그린다.
+ *        단, 마우스 위치와 관계없이 강제적으로 그린다.
+ * @fn CQTabWidget::slotForceUpdateTabWidth
+ * @see CQTabWidget::slotUpdateTabWidth(bool)
+ */
+void CQTabWidget::slotForceUpdateTabWidth()
 {
     slotUpdateTabWidth(true);
 }
 
 
 
+/**
+ * @brief [slot] 탭의 간격을 계산하여 적절한 넓이로 다시 그린다.
+ *        단, 마우스가 탭 위에 올라가 있는 상태라면 다시 그리지 않는다.
+ *        왜냐하면 마우스를 옮기지 않고 탭을 연속적으로 닫을 수 있기 때문이다.
+ * @fn CQTabWidget::slotUpdateTabWidth
+ * @param force
+ */
 void CQTabWidget::slotUpdateTabWidth(bool force)
 {
     int margin = 0;
-    int count;
+    int tabNumber;
     QWidget* topRightCornerWidget = 0;
     QWidget* topLeftCornerWidget = 0;
 
-    count = (this->count() == 0) ? 1 : this->count();
+    tabNumber = (this->count() == 0) ? 1 : this->count();
     topRightCornerWidget = this->cornerWidget(Qt::TopRightCorner);
     topLeftCornerWidget = this->cornerWidget(Qt::TopLeftCorner);
 
@@ -148,7 +160,7 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
     if(topLeftCornerWidget)
         margin += topLeftCornerWidget->width();
 
-    m_tabWidth = (this->width()- margin) / count;
+    m_tabWidth = (this->width()- margin) / tabNumber;
 
     if(m_tabWidth > 200 || m_tabWidth < 0) {
         m_tabWidth = 200;
@@ -163,9 +175,17 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
 
 int CQTabWidget::addTab(Form *widget, const QString &tabName)
 {
-    int newIndex = QTabWidget::addTab(widget, tabName);
-    connect(widget, SIGNAL(mouseMoved()), this, SLOT(slotUpdateTabWidth()));
-    slotUpdateTabWidth();
+    int newIndex;
+
+    newIndex = QTabWidget::addTab(widget, tabName);
+
+    // 탭을 닫은 후 마우스가 폼 위에 올라가면 탭을 다시 그린다.
+    connect(widget, SIGNAL(mouseMoved()), this, SLOT(slotForceUpdateTabWidth()));
+    // 폼이 리사이즈되면 탭을 다시 그린다.
+    connect(widget, SIGNAL(resized()), this, SLOT(slotForceUpdateTabWidth()));
+
+    //초기화
+    slotForceUpdateTabWidth();
 
     emit tabAttached(newIndex);
     return newIndex;

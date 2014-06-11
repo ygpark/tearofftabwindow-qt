@@ -63,3 +63,9 @@ void Form::mouseMoveEvent(QMouseEvent *event)
     Q_UNUSED(event);
     emit mouseMoved();
 }
+
+void Form::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    emit resized();
+}

@@ -38,7 +38,7 @@ public slots:
     // Detach Tab
     void slotTabDetachRequested (int index, QPoint&);
     void slotTabCloseRequested(int);
-    void slotUpdateTabWidth();
+    void slotForceUpdateTabWidth();
     void slotUpdateTabWidth(bool force);
 
 signals:

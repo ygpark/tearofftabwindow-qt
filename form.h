@@ -21,11 +21,13 @@ public:
     
 protected:
     virtual void mouseMoveEvent(QMouseEvent* event);
+    virtual void resizeEvent(QResizeEvent* event);
 
 private slots:
 
 signals:
     void mouseMoved();
+    void resized();
 
 private:
     Ui::Form *ui;
