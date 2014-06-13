@@ -8,7 +8,7 @@ class CQTabBar : public QTabBar
     Q_OBJECT
 public:
     explicit CQTabBar(QWidget *parent = 0);
-    bool canUpdate();
+    void initialize();
     
 signals:
     
@@ -34,6 +34,7 @@ private:
     QPoint       m_dragDropedPos;
     bool         m_dragInitiated;
     int          m_dragCurrentIndex;
+    //마우스가 탭 위에
     bool         m_canUpdate;
 
 };

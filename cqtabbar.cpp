@@ -15,19 +15,20 @@
 CQTabBar::CQTabBar(QWidget *parent) :
     QTabBar(parent)
 {
-    setAcceptDrops(true);
-    setElideMode(Qt::ElideRight);
-    setSelectionBehaviorOnRemove (QTabBar::SelectLeftTab);
-    setMovable (true);
-    installEventFilter(this);
-    m_canUpdate = false;
+    initialize();
 }
 
-
-
-bool CQTabBar::canUpdate()
+void CQTabBar::initialize()
 {
-    return this->m_canUpdate;
+    setAcceptDrops(true);
+    //제목을 표시할 공간이 좁으면 우측을 ...으로 표시한다.
+    setElideMode(Qt::ElideRight);
+    //탭이 제거되었을 때 좌측 탭을 활성화 한다.
+    setSelectionBehaviorOnRemove (QTabBar::SelectLeftTab);
+    //탭 우측에 종료버튼(x)을 표시한다.
+    setMovable (true);
+    //이벤트 필터를 설치한다.
+    installEventFilter(this);
 }
 
 
@@ -168,17 +169,7 @@ void CQTabBar::dropEvent(QDropEvent* event)
 
 
 bool CQTabBar::eventFilter(QObject *object, QEvent *event){
-    if(object==this) {
-        if(event->type() == QEvent::Enter ||
-           event->type() == QEvent::HoverEnter ||
-                event->type() == QEvent::HoverMove) {
-            m_canUpdate = true;
-        } else if(event->type() == QEvent::Leave ||
-                  event->type() == QEvent::HoverLeave) {
-            m_canUpdate = false;
-        }
-    } else if(object==this && !(event->type()==QEvent::Enter || event->type()==QEvent::Leave)) {
-        qDebug() << event->type();
-    }
+    Q_UNUSED(object);
+    Q_UNUSED(event);
     return false;
 }

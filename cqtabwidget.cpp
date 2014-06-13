@@ -166,6 +166,8 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
         m_tabWidth = 200;
     }
 
+    // 강제 옵션이 켜져있지 않다면, 마우스가 탭 위에 올라가 있지 않은 경우에만 사이즈를 조절한다.
+    // 그 이유는 탭을 연속적으로 닫을 때 마우스를 옮기지 않기 위해서다.
     if(!this->customTabBar()->underMouse() || force) {
         this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
     }
@@ -179,15 +181,17 @@ int CQTabWidget::addTab(Form *widget, const QString &tabName)
 
     newIndex = QTabWidget::addTab(widget, tabName);
 
-    // 탭을 닫은 후 마우스가 폼 위에 올라가면 탭을 다시 그린다.
+    // 탭을 닫은 후 마우스가 탭위젯 아래 방향으로 내려가면 탭을 다시 그린다.
+    // 이유는 마우스가 탭을 벗어났는데도 불구하고 QTabWidget::underMouse()함수가 false를 반환하지
+    // 않는 경우가 있기 때문이다. 이 경우는 마우스 위치와 상관없이 탭을 다시 그린다.
     connect(widget, SIGNAL(mouseMoved()), this, SLOT(slotForceUpdateTabWidth()));
     // 폼이 리사이즈되면 탭을 다시 그린다.
     connect(widget, SIGNAL(resized()), this, SLOT(slotForceUpdateTabWidth()));
-
-    //초기화
+    // 탭이 새로 추가되면 탭 간격을 다시 조절한다.
     slotForceUpdateTabWidth();
-
+    // tabAttached(int) 시그널을 발생시킨다.
     emit tabAttached(newIndex);
+
     return newIndex;
 }
 
