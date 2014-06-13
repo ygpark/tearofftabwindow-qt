@@ -32,10 +32,10 @@ private:
     QPoint       m_dragStartPos;
     QPoint       m_dragMovedPos;
     QPoint       m_dragDropedPos;
-    bool         m_dragInitiated;
+    //mousePressEvent() 발생하면 true가 되고 dragEnterEvent()가 발생하면 false가 된다.
+    //초기값은 false.
+    bool         m_dragAllowed;
     int          m_dragCurrentIndex;
-    //마우스가 탭 위에
-    bool         m_canUpdate;
 
 };
 

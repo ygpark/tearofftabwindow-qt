@@ -77,24 +77,10 @@ void CQTabWidget::MoveTab(int fromIndex, int toIndex)
 
 void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
 {
-    QWidget *widgetAtCursor = QApplication::widgetAt(QCursor::pos ());
+    this->attachTabToNewMainwindow(index);
 
-    MainWindow *mainWindowOnCursor = CWindowManager::findMainWindow(widgetAtCursor);
-    MainWindow *myMainwindow = CWindowManager::findMainWindow(this);
-
-    // cursor on the sky
-    if(mainWindowOnCursor == NULL) {
-        this->attachTabToNewMainwindow(index);
-    }else if(mainWindowOnCursor != NULL && mainWindowOnCursor == myMainwindow) {
-        // cursor on the my area
-        this->attachTabToNewMainwindow(index);
-    } else {
-        // cursor on the other area
-        attachTab(index, mainWindowOnCursor);
-    }
-
-    // Remove mainwindows that has no tab.
-    CWindowManager::garbageCollection();
+    // 빈 메인위도우를 지운다.
+    CWindowManager::removeEmptyWindow();
 }
 
 
@@ -102,13 +88,13 @@ void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
 void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 {
     // Create Window
-    MainWindow* detachedWidget = new MainWindow (NULL);
-    CWindowManager::getInstance()->items()->insert(detachedWidget);
+    MainWindow* newMainWindow = new MainWindow (NULL);
+    CWindowManager::getInstance()->items()->insert(newMainWindow);
 
     // Find Widget and connect
     Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
     this->removeTab(srcTabIndex);
-    int newIndex = detachedWidget->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    int newIndex = newMainWindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 
     // Make first active
@@ -117,8 +103,9 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
         setCurrentIndex (0);
     }
 
-    detachedWidget->move(QCursor::pos());
-    detachedWidget->show ();
+    //탭을 떼어낸 후 계속 마우스 버튼이 클릭된 상태라면 메인 윈도우가 마우스를 따라다니게 만든다.
+    newMainWindow->startMouseTracking();
+    newMainWindow->show ();
 
     emit tabAttached(newIndex);
 }
@@ -235,6 +222,6 @@ void CQTabWidget::slotTabCloseRequested(int index)
 {
     this->removeTab(index);
 
-    CWindowManager::garbageCollection();
+    CWindowManager::removeEmptyWindow();
     emit tabClosed(index);
 }

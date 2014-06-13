@@ -28,7 +28,7 @@ CWindowManager* CWindowManager::getInstance()
     if(CWindowManager::m_instance == NULL)
         CWindowManager::m_instance = new CWindowManager();
 
-    garbageCollection();
+    removeEmptyWindow();
     return CWindowManager::m_instance;
 }
 
@@ -41,7 +41,10 @@ QSet<MainWindow*>* CWindowManager::items()
 
 
 
-void CWindowManager::garbageCollection()
+/**
+ * @brief 빈 메인윈도우를 지운다.
+ */
+void CWindowManager::removeEmptyWindow()
 {
     QSetIterator<MainWindow*> iter(m_list);
     while(iter.hasNext()) {

@@ -46,7 +46,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent (QCloseEvent* /*event*/)
 {
-    CWindowManager::garbageCollection();
+    CWindowManager::removeEmptyWindow();
 }
 
 
@@ -54,6 +54,7 @@ void MainWindow::closeEvent (QCloseEvent* /*event*/)
 void MainWindow::Initialize()
 {
     m_tabwidget = NULL;
+    m_isMouseTrackingState = false;
 
     m_tabwidget = new CQTabWidget(NULL);
     m_tabwidget->setParent(this);
@@ -64,6 +65,9 @@ void MainWindow::Initialize()
     m_btnAddTab = new QPushButton("+", this);
     connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_Clicked()));
     m_tabwidget->setCornerWidget(m_btnAddTab, Qt::TopLeftCorner);
+
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(slotUpdateMainWindowPos()));
 }
 
 
@@ -76,8 +80,37 @@ void MainWindow::addTab(Form *widget)
 
 
 
+/**
+ * @brief 왼쪽 마우스 버튼이 클릭된 상태라면 메인 윈도우가 마우스를 따라다니게 만든다.
+ *        이것은 eventFilter를 통하여 구현되었다.
+ */
+void MainWindow::startMouseTracking()
+{
+    m_isMouseTrackingState = true;
+    m_timer->start(10);
+}
+
+void MainWindow::stopMouseTracking()
+{
+    m_isMouseTrackingState = false;
+    m_timer->stop();
+}
+
+
+
 void MainWindow::slotAddTabButton_Clicked()
 {
     Form *form = new Form("NewTab");
     this->addTab(form);
+}
+
+void MainWindow::slotUpdateMainWindowPos()
+{
+    if(m_isMouseTrackingState) {
+        this->move(QCursor::pos().x()-190, QCursor::pos().y()-50);
+    }
+
+    if(QApplication::mouseButtons() != Qt::LeftButton) {
+        stopMouseTracking();
+    }
 }

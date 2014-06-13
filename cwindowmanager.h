@@ -14,7 +14,7 @@ private:
 public:
     static CWindowManager* getInstance();
     static QSet<MainWindow*>* items();
-    static void garbageCollection();
+    static void removeEmptyWindow();
     static MainWindow* findMainWindow(QWidget *widget);
 
 private:

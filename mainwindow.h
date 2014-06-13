@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 
 class CQTabWidget;
 class Form;
@@ -23,18 +24,27 @@ public:
 
     void addTab(Form *widget);
 
+    void startMouseTracking();
+    void stopMouseTracking();
+
+
 private:
     void Initialize();
-    //void redrawAddTabButton();
+
+protected:
 
 public slots:
     void slotAddTabButton_Clicked();
+    void slotUpdateMainWindowPos();
 
 private:
     Ui::MainWindow *ui;
 public:
     CQTabWidget *m_tabwidget;
     QPushButton *m_btnAddTab;
+    QTimer      *m_timer;
+    bool m_isMouseTrackingState;
+    bool m_isMousePressed;
 };
 
 #endif // MAINWINDOW_H
