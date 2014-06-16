@@ -40,6 +40,7 @@ public slots:
     void slotTabCloseRequested(int);
     void slotForceUpdateTabWidth();
     void slotUpdateTabWidth(bool force);
+    void slotMoveMainWindowRequested();
 
 signals:
     void tabClosed(int index);

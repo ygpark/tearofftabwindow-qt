@@ -39,7 +39,6 @@ void CQTabBar::initialize()
 void CQTabBar::mousePressEvent(QMouseEvent* event)
 {
     qDebug() << "CQTabBar::mousePressEvent";
-
     QTabBar::mousePressEvent(event);
 
     if (event->button() == Qt::LeftButton) {
@@ -47,23 +46,17 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
         //드래그가 시작
         m_dragAllowed = true;
     }
-
 }
 
 
 
 void CQTabBar::mouseMoveEvent(QMouseEvent* event)
 {
-
-    // TODO: 탭이 하나인 경우 예외처리.
-    //      현재 윈도우가 마우스를 따라다니게 만든 후 return한다.
-
-
     // 마우스가 드래그를 시작한 상태가 아니라면 리턴
     if (!(event->buttons() & Qt::LeftButton) || !m_dragAllowed)
         return;
 
-    // 드래그를 위한 최소 거리 측
+    // 드래그를 위한 최소 거리보다 작으면 리턴
     if ((event->pos() - m_dragStartPos).manhattanLength()
             < QApplication::startDragDistance())
         return;
@@ -82,10 +75,12 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
 void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
     qDebug() << "CQTabBar::dragEnterEvent";
-    if(m_dragAllowed) {
+    if(m_dragAllowed && this->count() > 1) {
         emit tabDetachRequested (tabAt(m_dragStartPos), m_dragDropedPos);
         event->acceptProposedAction();
         m_dragAllowed = false;
+    } if(m_dragAllowed && this->count() == 1) {
+        emit moveMainWindowRequested();
     }
 
     QTabBar::dragEnterEvent(event);

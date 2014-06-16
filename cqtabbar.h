@@ -25,6 +25,7 @@ protected:
 signals:
     // Detach Tab
     void tabDetachRequested (int index, QPoint& dropPoint);
+    void moveMainWindowRequested();
     // Move Tab
     void OnMoveTab (int fromIndex, int toIndex);
 

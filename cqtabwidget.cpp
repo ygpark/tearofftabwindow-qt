@@ -22,8 +22,12 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     this->setMovable(true);
     this->setTabsClosable(true);
 
-    connect(m_tabbar, SIGNAL(tabDetachRequested(int,QPoint&)), this, SLOT(slotTabDetachRequested(int, QPoint&)));
-    connect(m_tabbar, SIGNAL(tabCloseRequested(int))  , this, SLOT(slotTabCloseRequested(int)));
+    connect(m_tabbar, SIGNAL(tabDetachRequested(int,QPoint&)),
+            this, SLOT(slotTabDetachRequested(int, QPoint&)));
+    connect(m_tabbar, SIGNAL(moveMainWindowRequested()),
+            this, SLOT(slotMoveMainWindowRequested()));
+    connect(m_tabbar, SIGNAL(tabCloseRequested(int)),
+            this, SLOT(slotTabCloseRequested(int)));
 
     // Apply styleSheet
     QFile file(":/css/cqtabwidget.css");
@@ -158,6 +162,12 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
     if(!this->customTabBar()->underMouse() || force) {
         this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
     }
+}
+
+void CQTabWidget::slotMoveMainWindowRequested()
+{
+    MainWindow *mainWindow = CWindowManager::findMainWindow(this);
+    mainWindow->startMouseTracking();
 }
 
 
