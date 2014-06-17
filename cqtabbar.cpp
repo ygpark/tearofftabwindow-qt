@@ -11,13 +11,20 @@
 #endif
 
 
-
+/**
+ * @brief 생성자
+ */
 CQTabBar::CQTabBar(QWidget *parent) :
     QTabBar(parent)
 {
     initialize();
 }
 
+
+
+/**
+ * @brief 생성자에서 사용하는 초기화 함
+ */
 void CQTabBar::initialize()
 {
     setAcceptDrops(true);
@@ -36,9 +43,23 @@ void CQTabBar::initialize()
 
 
 
+/**
+ * @brief 소멸자
+ */
+CQTabBar::~CQTabBar()
+{
+
+}
+
+
+
+/**
+ * @brief mousePressEvent 이벤트 핸들러
+ *      왼쪽 버튼으로 탭을 클릭하면 드래그가 시작되었음을 알린다.
+ *
+ */
 void CQTabBar::mousePressEvent(QMouseEvent* event)
 {
-    qDebug() << "CQTabBar::mousePressEvent";
     QTabBar::mousePressEvent(event);
 
     if (event->button() == Qt::LeftButton) {
@@ -61,53 +82,47 @@ void CQTabBar::mouseMoveEvent(QMouseEvent* event)
             < QApplication::startDragDistance())
         return;
 
-    // 드래그 시
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
 
-    mimeData->setData("application/text", "data");
+    mimeData->setData("application/text", "dummy data");
     drag->setMimeData(mimeData);
 
-    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction);
+    Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
 }
 
 
 void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
-    qDebug() << "CQTabBar::dragEnterEvent";
+    QTabBar::dragEnterEvent(event);
+
     if(m_dragAllowed && this->count() > 1) {
+        //event->acceptProposedAction();
+
+        //TODO: 드랍을 자기자신(탭) 위에 하는 경우를 막아야 한다.
+
         emit tabDetachRequested (tabAt(m_dragStartPos), m_dragDropedPos);
-        event->acceptProposedAction();
         m_dragAllowed = false;
+
     } if(m_dragAllowed && this->count() == 1) {
         emit moveMainWindowRequested();
     }
-
-    QTabBar::dragEnterEvent(event);
 }
 
 
 
 void CQTabBar::dragMoveEvent(QDragMoveEvent* event)
 {
-    qDebug() << "CQTabBar::dragMoveEvent";
-    // Only accept if it's an tab-reordering request
-//    const QMimeData* m = event->mimeData();
-//    QStringList formats = m->formats();
-//    if (formats.contains("action") && (m->data("action") == "application/tab-detach"))
-//    {
-//        m_dragMovedPos = event->pos ();
-        event->acceptProposedAction();
-//    }
     QTabBar::dragMoveEvent (event);
+    //event->acceptProposedAction();
 }
 
 
 
 void CQTabBar::dropEvent(QDropEvent* event)
 {
-    qDebug() << "CQTabBar::dropEvent";
     QTabBar::dropEvent(event);
+    qDebug() << "CQTabBar::dropEvent";
 }
 
 

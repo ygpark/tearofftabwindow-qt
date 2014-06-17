@@ -49,11 +49,12 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
 
 
 
+/**
+ * @brief 소멸자
+ *      - m_tabbar는 parent에게 삭제를 위임한다.
+ */
 CQTabWidget::~CQTabWidget()
 {
-    if(m_tabbar!=NULL) {
-        delete m_tabbar;
-    }
 }
 
 

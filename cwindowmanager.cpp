@@ -50,8 +50,10 @@ void CWindowManager::removeEmptyWindow()
     while(iter.hasNext()) {
         MainWindow* i = iter.next();
         if(i->m_tabwidget->count() == 0 || i->isHidden()) {
-            QTimer::singleShot(10, i, SLOT(close()));
             m_list.remove(i);
+            i->setAttribute(Qt::WA_DeleteOnClose, true);
+            i->hide();
+            i->deleteLaterSafe();
         }
     }
 }

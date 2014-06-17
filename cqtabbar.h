@@ -9,17 +9,18 @@ class CQTabBar : public QTabBar
 public:
     explicit CQTabBar(QWidget *parent = 0);
     void initialize();
+    virtual ~CQTabBar();
     
 signals:
     
 public slots:
     
 protected:
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void mouseMoveEvent(QMouseEvent* event);
-    virtual void dragEnterEvent(QDragEnterEvent* event);
-    virtual void dragMoveEvent(QDragMoveEvent* event);
-    virtual void dropEvent(QDropEvent* event);
+    void mousePressEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
+    void dragEnterEvent(QDragEnterEvent* event);
+    void dragMoveEvent(QDragMoveEvent* event);
+    void dropEvent(QDropEvent* event);
 
     bool eventFilter(QObject *object, QEvent *event);
 signals:
