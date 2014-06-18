@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->Initialize();
+    this->initialize();
 }
 
 
@@ -32,42 +32,46 @@ MainWindow::MainWindow(Form *form, QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->Initialize();
+    this->initialize();
 
     this->addTab(form);
 }
 
 
 
+
+/**
+ * @brief 소멸자
+ * @fn MainWindow::~MainWindow
+ */
 MainWindow::~MainWindow()
 {
-    qDebug() << "MainWindow::~MainWindow";
     delete ui;
 }
 
 
 
-void MainWindow::Initialize()
+void MainWindow::initialize()
 {
-    m_tabwidget = NULL;
-    m_isMouseTrackingState = false;
+    m_parentMainWindow = 0;
+
+    m_tabwidget = 0;
 
     m_tabwidget = new CQTabWidget(NULL);
     m_tabwidget->setParent(this);
     this->setCentralWidget(m_tabwidget);
     this->setFocus();
-
-    // AddTabButton
     m_btnAddTab = new QPushButton("+", this);
-    connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_Clicked()));
+    connect(m_btnAddTab, SIGNAL(clicked()), this, SLOT(slotAddTabButton_clicked()));
     m_tabwidget->setCornerWidget(m_btnAddTab, Qt::TopLeftCorner);
 
-    // 탭을 떼어난 후에 끌고다니기 위한 타이머
-    m_timerDetachedTab = new QTimer(this);
-    connect(m_timerDetachedTab, SIGNAL(timeout()), this, SLOT(slotProcessAfterTabDetached_timeout()));
+    m_timerProcessAfterTabDetached = new QTimer(this);
+    connect(m_timerProcessAfterTabDetached, SIGNAL(timeout()), this, SLOT(slotProcessAfterTabDetached_timeout()));
 
     m_timerDeleteLaterSafe = new QTimer(this);
     connect(m_timerDeleteLaterSafe, SIGNAL(timeout()), this, SLOT(slotDeleteLaterSafe_timeout()));
+
+    m_isMouseTrackingState = false;
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
 }
@@ -83,19 +87,25 @@ void MainWindow::addTab(Form *widget)
 
 
 /**
- * @brief 왼쪽 마우스 버튼이 클릭된 상태라면 메인 윈도우가 마우스를 따라다니게 만든다.
- *        이것은 eventFilter를 통하여 구현되었다.
+ * @brief 메인 윈도우가 마우스를 따라다니게 만든다. 단 왼쪽 마우스가 클릭된 상태여야 한다.
  */
 void MainWindow::startMouseTracking()
 {
     m_isMouseTrackingState = true;
-    m_timerDetachedTab->start(10);
+    m_timerProcessAfterTabDetached->start(10);
 }
 
+
+
+/**
+ * @brief 마우스 추적을 중지한다.
+ * @see MainWindow::startMouseTracking()
+ */
 void MainWindow::stopMouseTracking()
 {
+    setParentMainWindow(0);
     m_isMouseTrackingState = false;
-    m_timerDetachedTab->stop();
+    m_timerProcessAfterTabDetached->stop();
 }
 
 
@@ -113,11 +123,52 @@ void MainWindow::deleteLaterSafe()
     m_timerDeleteLaterSafe->start(50);
 }
 
+
+
+/**
+ * @brief MainWindow의 부모를 설정한다.
+ * parent의 용도는 새로운 MainWindow가 만들어지자마자 부모 MainWindow로 합쳐지는 것을
+ * 방지하기 위해 사용된다.
+ *
+ * @param parent MainWindow(this)를 생성한 부모객체
+ * @see MainWindow::getParentMainWindow(), CQTabWidget::attachTabToNewMainwindow()
+ *
+ */
+void MainWindow::setParentMainWindow(MainWindow *parent)
+{
+    m_parentMainWindow = parent;
+}
+
+
+
+/**
+ * @brief MainWindow를 만든 부모를 리턴한다.
+ * @return MainWindow
+ * @see MainWindow::setParentMainWindow(), CQTabWidget::attachTabToNewMainwindow()
+ *
+ */
+MainWindow *MainWindow::getParentMainWindow()
+{
+    return m_parentMainWindow;
+}
+
+
+
+/**
+ * @brief QTabWidget이 포함하는 QTabBar을 리턴한다.
+ * @return QTabBar
+ */
 QTabBar* MainWindow::getTabBar()
 {
     return m_tabwidget->tabBar();
 }
 
+
+
+/**
+ * @brief QTabWidget을 리턴한다.
+ * @return QTabWidget
+ */
 QTabWidget* MainWindow::getTabWidget()
 {
     return m_tabwidget;
@@ -125,7 +176,10 @@ QTabWidget* MainWindow::getTabWidget()
 
 
 
-void MainWindow::slotAddTabButton_Clicked()
+/**
+ * @brief 새 탭을 만드는 버튼의 click이벤트 핸들러
+ */
+void MainWindow::slotAddTabButton_clicked()
 {
     static int n = 0;
     QString name = QString("NewTab %1").arg(n++);
@@ -134,81 +188,30 @@ void MainWindow::slotAddTabButton_Clicked()
 }
 
 
+
 /**
  * @brief 탭을 떼어낸 후에 일어나야 될 일들을 처리한다.
- *
- *  [탭바(TabBar)의 영역(geometry)을 구하는 방법]
- *
- *   QTabBar의 geometry는 Tab1과 Tab2를 합친 영역이다. 하지만 탭을 드랍할 영역은 Empty Area까지 포함해야한다.
- *   왜냐하면 좌우에 빈 공간이 생기기 때문이다.
- *   이 빈 공간을 없애기 위해 탭위젯의 영역(geometry)를 사용한다.
- *   탭위젯의 영역은 탭과 탭 내부의 폼까지 포함하므로 사실상 메인윈도우 전체라고 해도 무방하다.
- *   결론적으로 탭위젯의 영역에서 탭바의 y축을 비교하여 교집합만 얻는다.
- *
- *
- *   +-------------------------------------+
- *   | TitleBar                            |
- *   +-------------------------------------+  --+-------------------\
- *   | Tab1 | Tab2 |      Empty Area       |     \                   \
- *   +-------------------------------------+  ----> TabBar.Y axis     \
- *   |                                     |                           \
- *   |                                     |                            > TabWidget.Y axis
- *   |                                     |                           /
- *   +-------------------------------------+  ------------------------+
- *
- *
  */
 void MainWindow::slotProcessAfterTabDetached_timeout()
 {
+    MainWindow *windowToGo = 0;
+
     // 윈도우를 이동시킨다. 이 때 좌표를 약간 이동하여 마치 탭을 드래그하는 효과를 준다.
     if(m_isMouseTrackingState) {
         this->move(QCursor::pos().x()-190, QCursor::pos().y()-50);
     }
 
-    // 탭이 이동할 타겟 윈도우 상단의 TabBar 영역에 마우스 커서가 올라가면 드래그중인 탭을 타겟 윈도우에 붙인다.
-    MainWindow *windowToGo = 0;
-    QRect tabRegionToGo;
-    QRect globalTabRegionToGo;
-    QRect tabWidgetRegionToGo;
-    QRect globalTabWidgetRegionToGo;
-    QWidgetList list = qApp->topLevelWidgets();
-    QWidgetList::iterator it;
-    QTabBar* tabBar = 0;
-    QTabWidget* tabWidget = 0;
-
-    // 모든 MainWindow를 순회하면서
-    for(it = list.begin(); it != list.end(); ++it) {
-        MainWindow *item = reinterpret_cast<MainWindow*>(*it);
-        if(this == item) {
-            continue;
+    // 마우스로 드래그 중인 MainWindow의 Tab을 다른 MainWindow에 붙인다.
+    if(!CWindowManager::isCursorOnTabWithEmptyArea(this->getParentMainWindow())) {
+        windowToGo = CWindowManager::findMainWindowByCursorOnTabWithout(this);
+        if(windowToGo != 0) {
+            stopMouseTracking();
+            windowToGo->addTab(reinterpret_cast<Form*>(m_tabwidget->widget(0)));
+            windowToGo->raise();
+            windowToGo->activateWindow();
+            CWindowManager::removeEmptyWindow();
+            return;
         }
-        tabBar = item->getTabBar();
-        tabWidget = item->getTabWidget();
-
-        tabRegionToGo = tabBar->geometry();
-        tabWidgetRegionToGo = tabWidget->geometry();
-
-        globalTabRegionToGo.setTopLeft(tabBar->mapToGlobal(tabRegionToGo.topLeft()));
-        globalTabRegionToGo.setBottomRight(tabBar->mapToGlobal(tabRegionToGo.bottomRight()));
-
-        globalTabWidgetRegionToGo.setTopLeft(tabWidget->mapToGlobal(tabWidgetRegionToGo.topLeft()));
-        globalTabWidgetRegionToGo.setBottomRight(tabWidget->mapToGlobal(tabWidgetRegionToGo.bottomRight()));
-
-        globalTabWidgetRegionToGo.setTopLeft(QPoint(globalTabWidgetRegionToGo.topLeft().x(), globalTabRegionToGo.topLeft().y()));
-        globalTabWidgetRegionToGo.setBottomRight(QPoint(globalTabWidgetRegionToGo.bottomRight().x(), globalTabRegionToGo.bottomRight().y()));
-
-        if(globalTabWidgetRegionToGo.contains(QCursor::pos())) {
-            windowToGo = item;
-        }
-    }
-
-    if(windowToGo != 0) {
-        stopMouseTracking();
-        windowToGo->addTab(reinterpret_cast<Form*>(m_tabwidget->widget(0)));
-        windowToGo->raise();
-        windowToGo->activateWindow();
-        CWindowManager::removeEmptyWindow();
-        return;
     }
 
     // 마우스 좌측 버튼이 릴리즈되면 이동을 중지한다.

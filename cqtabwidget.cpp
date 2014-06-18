@@ -94,6 +94,7 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 {
     // Create Window
     MainWindow* newMainWindow = new MainWindow (NULL);
+    newMainWindow->setParentMainWindow(CWindowManager::findMainWindowOf(this));
     CWindowManager::getInstance()->items()->insert(newMainWindow);
 
     // Find Widget and connect
@@ -167,7 +168,7 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
 
 void CQTabWidget::slotMoveMainWindowRequested()
 {
-    MainWindow *mainWindow = CWindowManager::findMainWindow(this);
+    MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
     mainWindow->startMouseTracking();
 }
 
