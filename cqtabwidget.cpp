@@ -22,8 +22,8 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     this->setMovable(true);
     this->setTabsClosable(true);
 
-    connect(m_tabbar, SIGNAL(tabDetachRequested(int,QPoint&)),
-            this, SLOT(slotTabDetachRequested(int, QPoint&)));
+    connect(m_tabbar, SIGNAL(tabDetachRequested(int)),
+            this, SLOT(slotTabDetachRequested(int)));
     connect(m_tabbar, SIGNAL(moveMainWindowRequested()),
             this, SLOT(slotMoveMainWindowRequested()));
     connect(m_tabbar, SIGNAL(tabCloseRequested(int)),
@@ -80,7 +80,7 @@ void CQTabWidget::MoveTab(int fromIndex, int toIndex)
 
 
 
-void CQTabWidget::slotTabDetachRequested (int index, QPoint& /*dropPoint*/)
+void CQTabWidget::slotTabDetachRequested (int index)
 {
     this->attachTabToNewMainwindow(index);
 
@@ -99,7 +99,15 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
 
     // Find Widget and connect
     Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
+
+    /****************************************
+     * 주의
+     ****************************************
+     * 탭순서를 바꾸는 중일 경우(마우스로 좌우이동)
+     * 탭이 삭제되면 죽는다.
+     ****************************************/
     this->removeTab(srcTabIndex);
+
     int newIndex = newMainWindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 

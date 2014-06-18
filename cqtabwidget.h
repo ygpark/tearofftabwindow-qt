@@ -36,7 +36,7 @@ public slots:
     // Move Tab
     void MoveTab(int fromIndex, int toIndex);
     // Detach Tab
-    void slotTabDetachRequested (int index, QPoint&);
+    void slotTabDetachRequested (int index);
     void slotTabCloseRequested(int);
     void slotForceUpdateTabWidth();
     void slotUpdateTabWidth(bool force);

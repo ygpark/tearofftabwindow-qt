@@ -1,10 +1,16 @@
 ﻿#include "cqtabbar.h"
+
+/* Local */
 #include "cqtabwidget.h"
+#include "cwindowmanager.h"
+
+/* Qt */
 #include <QMouseEvent>
 #include <QMimeData>
 #include <QPainter>
 #include <QApplication>
 #include <QDrag>
+#include <QTimer>
 #include <QDebug>
 #if QT_VERSION >= 0x050000
 #include <QScreen>
@@ -34,11 +40,9 @@ void CQTabBar::initialize()
     setSelectionBehaviorOnRemove (QTabBar::SelectLeftTab);
     //탭 우측에 종료버튼(x)을 표시한다.
     setMovable (true);
-    //이벤트 필터를 설치한다.
-    installEventFilter(this);
-    setMouseTracking(true);
 
-    m_dragAllowed = false;
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(slotTimer_timeout()));
 }
 
 
@@ -48,14 +52,13 @@ void CQTabBar::initialize()
  */
 CQTabBar::~CQTabBar()
 {
-
 }
 
 
 
 /**
  * @brief mousePressEvent 이벤트 핸들러
- *      왼쪽 버튼으로 탭을 클릭하면 드래그가 시작되었음을 알린다.
+ *  왼쪽 버튼으로 탭을 클릭하면 드래그가 시작되었음을 알린다.
  *
  */
 void CQTabBar::mousePressEvent(QMouseEvent* event)
@@ -63,50 +66,60 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
     QTabBar::mousePressEvent(event);
 
     if (event->button() == Qt::LeftButton) {
-        m_dragStartPos = event->pos();
-        //드래그가 시작
-        m_dragAllowed = true;
+        m_selectedTabIndex = tabAt(event->pos());
+        m_timer->start(10);
     }
 }
 
 
 
-void CQTabBar::mouseMoveEvent(QMouseEvent* event)
+/**
+ * @brief
+ */
+void CQTabBar::slotTimer_timeout()
 {
-    // 마우스가 드래그를 시작한 상태가 아니라면 리턴
-    if (!(event->buttons() & Qt::LeftButton) || !m_dragAllowed)
-        return;
+    MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
+    if(!CWindowManager::isCursorOnTabWithEmptyArea(mainWindow)) {
 
-    // 드래그를 위한 최소 거리보다 작으면 리턴
-    if ((event->pos() - m_dragStartPos).manhattanLength()
-            < QApplication::startDragDistance())
-        return;
+        m_timer->stop();
 
-    QDrag *drag = new QDrag(this);
-    QMimeData *mimeData = new QMimeData;
+        // 탭순서를 변경중이었다면 새 탭을 생성하기 위하여 mouseMoveEvent를 중지한다.
+        {
+            QMouseEvent* finishMoveEvent = new QMouseEvent (QEvent::MouseMove, QPoint(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+            QTabBar::mouseMoveEvent (finishMoveEvent);
+            delete finishMoveEvent;
+            finishMoveEvent = NULL;
+        }
 
-    mimeData->setData("application/text", "dummy data");
-    drag->setMimeData(mimeData);
+        if(qApp->mouseButtons() == Qt::LeftButton &&
+           this->count() > 1)
+        {
+            emit tabDetachRequested (m_selectedTabIndex);
 
-    Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
+        } else if(qApp->mouseButtons() == Qt::LeftButton &&
+                  this->count() == 1)
+        {
+            emit moveMainWindowRequested();
+        }
+
+
+    }
 }
 
 
+
+/**
+ * @brief dragEnterEvent 이벤트 핸들러
+ * @param event
+ * @see CQTabWindow::slotTabDetachRequested()
+ */
 void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
+    qDebug() << "dragEnterEvent(QDragEnterEvent* event)";
+
     QTabBar::dragEnterEvent(event);
 
-    if(m_dragAllowed && this->count() > 1) {
-        //event->acceptProposedAction();
 
-        //TODO: 드랍을 자기자신(탭) 위에 하는 경우를 막아야 한다.
-
-        emit tabDetachRequested (tabAt(m_dragStartPos), m_dragDropedPos);
-        m_dragAllowed = false;
-
-    } if(m_dragAllowed && this->count() == 1) {
-        emit moveMainWindowRequested();
-    }
 }
 
 
@@ -123,12 +136,4 @@ void CQTabBar::dropEvent(QDropEvent* event)
 {
     QTabBar::dropEvent(event);
     qDebug() << "CQTabBar::dropEvent";
-}
-
-
-
-bool CQTabBar::eventFilter(QObject *object, QEvent *event){
-    Q_UNUSED(object);
-    Q_UNUSED(event);
-    return false;
 }
