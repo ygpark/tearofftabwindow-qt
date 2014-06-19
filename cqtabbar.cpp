@@ -14,10 +14,8 @@
 #include <QTimer>
 #include <QTime>
 #include <QDebug>
+#include <QToolTip>
 #include <QThread>
-#if QT_VERSION >= 0x050000
-#include <QScreen>
-#endif
 
 
 /**
@@ -47,7 +45,8 @@ void CQTabBar::initialize()
     m_eventLoop = new QTimer(this);
     connect(m_eventLoop, SIGNAL(timeout()), this, SLOT(slotEventLoop_timeout()));
 
-    connect(this, SIGNAL(tabMoved(int,int)), this, SLOT(slotTabMoved(int,int)));
+    connect(this, SIGNAL(tabMoved(int,int)), this, SLOT(slotTabBar_tabMoved(int,int)));
+    connect(this, SIGNAL(currentChanged(int)), this, SLOT(slotTabBar_currentChanged(int)));
 }
 
 
@@ -74,6 +73,12 @@ QPoint CQTabBar::getSelectedGlobalPos()
     return m_selectedGlobalPos;
 }
 
+
+
+/**
+ * @brief paintEvent 이벤트 핸들러
+ * @param event
+ */
 void CQTabBar::paintEvent(QPaintEvent* event)
 {
     QTabBar::paintEvent(event);
@@ -93,7 +98,6 @@ void CQTabBar::paintEvent(QPaintEvent* event)
 void CQTabBar::mousePressEvent(QMouseEvent* event)
 {
     QTabBar::mousePressEvent(event);
-
     if (event->button() == Qt::LeftButton) {
         m_selectedTabIndex = tabAt(event->pos());
         m_selectedGlobalPos = QCursor::pos();
@@ -103,6 +107,12 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
     }
 }
 
+
+
+/**
+ * @brief mouseMoveEvent 이벤트 핸들러
+ * @param event
+ */
 void CQTabBar::mouseMoveEvent(QMouseEvent *event)
 {
     if(count() > 1) {
@@ -157,10 +167,21 @@ void CQTabBar::slotEventLoop_timeout()
  * @param from
  * @param to
  */
-void CQTabBar::slotTabMoved(int from, int to)
+void CQTabBar::slotTabBar_tabMoved(int from, int to)
 {
     Q_UNUSED(from);
     Q_UNUSED(to);
     m_eventLoop->stop();
+}
+
+
+
+/**
+ * @brief currentChanged() 이벤트 핸들러
+ * @param index 바뀐 탭 인덱스
+ */
+void CQTabBar::slotTabBar_currentChanged(int index)
+{
+    setTabToolTip(index, tabText(index));
 }
 

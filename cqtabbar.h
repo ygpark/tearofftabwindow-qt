@@ -27,7 +27,8 @@ signals:
 
 protected slots:
     void slotEventLoop_timeout();
-    void slotTabMoved(int from, int to);
+    void slotTabBar_tabMoved(int from, int to);
+    void slotTabBar_currentChanged(int index);
 
 private:
     int          m_selectedTabIndex;
