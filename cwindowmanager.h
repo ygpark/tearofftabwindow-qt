@@ -1,8 +1,6 @@
 ﻿#ifndef CMAINWINDOWLIST_H
 #define CMAINWINDOWLIST_H
 
-#include <QSet>
-
 class QWidget;
 class MainWindow;
 
@@ -13,15 +11,14 @@ private:
 
 public:
     static CWindowManager* getInstance();
-    static QSet<MainWindow*>* items();
-    static void removeEmptyWindow();
+    static void insert(MainWindow* mainWindow);
     static MainWindow* findMainWindowOf(QWidget *widget);
     static MainWindow* findMainWindowByCursorOnTabWithout(MainWindow *except);
     static MainWindow* findMainWindowByCursorOnTab();
     static bool isCursorOnTabWithEmptyArea(MainWindow *mainWindow);
+    static void removeEmptyWindow();
 
 private:
-    static QSet<MainWindow*> m_list;
     static CWindowManager *m_instance;
 };
 

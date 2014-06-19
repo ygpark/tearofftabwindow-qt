@@ -11,11 +11,9 @@
 #include <QApplication>
 #include <QDebug>
 
-
 //
 //static variables
 //
-QSet<MainWindow*> CWindowManager::m_list;
 CWindowManager* CWindowManager::m_instance = NULL;
 
 
@@ -34,15 +32,7 @@ CWindowManager* CWindowManager::getInstance()
     if(CWindowManager::m_instance == NULL)
         CWindowManager::m_instance = new CWindowManager();
 
-    removeEmptyWindow();
     return CWindowManager::m_instance;
-}
-
-
-
-QSet<MainWindow*>* CWindowManager::items()
-{
-    return &m_list;
 }
 
 
@@ -52,14 +42,12 @@ QSet<MainWindow*>* CWindowManager::items()
  */
 void CWindowManager::removeEmptyWindow()
 {
-    QSetIterator<MainWindow*> iter(m_list);
-    while(iter.hasNext()) {
-        MainWindow* i = iter.next();
-        if(i->m_tabwidget->count() == 0 || i->isHidden()) {
-            m_list.remove(i);
-            i->setAttribute(Qt::WA_DeleteOnClose, true);
-            i->hide();
-            i->deleteLaterSafe();
+    QWidgetList list = qApp->topLevelWidgets();
+    for(int i = 0; i < list.count(); i++) {
+        MainWindow* item  = static_cast<MainWindow*>(list[i]);
+        if(item->m_tabwidget->count() == 0) {
+            item->setAttribute(Qt::WA_DeleteOnClose, true);
+            item->close();
         }
     }
 }
@@ -70,6 +58,7 @@ MainWindow* CWindowManager::findMainWindowOf(QWidget *widget)
 {
     QWidget *parentWidget = widget;
     MainWindow *mainwindow = NULL;
+
     while(parentWidget != NULL) {
         mainwindow = qobject_cast<MainWindow*>(parentWidget);
         if(mainwindow != NULL){
@@ -77,6 +66,7 @@ MainWindow* CWindowManager::findMainWindowOf(QWidget *widget)
         }
         parentWidget = parentWidget->parentWidget();
     }
+
     return mainwindow;
 }
 
@@ -107,6 +97,7 @@ MainWindow* CWindowManager::findMainWindowByCursorOnTabWithout(MainWindow* excep
             break;
         }
     }
+
     return windowToGo;
 }
 

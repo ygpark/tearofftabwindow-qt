@@ -56,10 +56,7 @@ void MainWindow::initialize()
 {
     m_parentMainWindow = 0;
 
-    m_tabwidget = 0;
-
-    m_tabwidget = new CQTabWidget(NULL);
-    m_tabwidget->setParent(this);
+    m_tabwidget = new CQTabWidget();
     this->setCentralWidget(m_tabwidget);
     this->setFocus();
     m_btnAddTab = new QPushButton("+", this);
@@ -132,7 +129,7 @@ void MainWindow::deleteLaterSafe()
  * 방지하기 위해 사용된다.
  *
  * @param parent MainWindow(this)를 생성한 부모객체
- * @see MainWindow::getParentMainWindow(), CQTabWidget::attachTabToNewMainwindow()
+ * @see MainWindow::getParentMainWindow(), CQTabWidget::slotTabDetachRequested()
  *
  */
 void MainWindow::setParentMainWindow(MainWindow *parent)
@@ -145,7 +142,7 @@ void MainWindow::setParentMainWindow(MainWindow *parent)
 /**
  * @brief MainWindow를 만든 부모를 리턴한다.
  * @return MainWindow
- * @see MainWindow::setParentMainWindow(), CQTabWidget::attachTabToNewMainwindow()
+ * @see MainWindow::setParentMainWindow(), CQTabWidget::slotTabDetachRequested()
  *
  */
 MainWindow *MainWindow::getParentMainWindow()
@@ -196,10 +193,13 @@ void MainWindow::slotAddTabButton_clicked()
 void MainWindow::slotProcessAfterTabDetached_timeout()
 {
     MainWindow *windowToGo = 0;
+    QPoint pos = m_tabwidget->customTabBar()->getDistanceFromMainWindowLeftTopToCursor();
+    int diffX = (pos.x() == 0) ? 190 : pos.x();
+    int diffY = (pos.y() == 0) ? 50 : pos.y();
 
     // 윈도우를 이동시킨다. 이 때 좌표를 약간 이동하여 마치 탭을 드래그하는 효과를 준다.
     if(m_isMouseTrackingState) {
-        this->move(QCursor::pos().x()-190, QCursor::pos().y()-50);
+        this->move(QCursor::pos().x()-diffX, QCursor::pos().y()-diffY);
     }
 
     // 마우스로 드래그 중인 MainWindow의 Tab을 다른 MainWindow에 붙인다.

@@ -67,23 +67,12 @@ void CQTabWidget::initialize()
 
 void CQTabWidget::slotTabDetachRequested (int index)
 {
-    this->attachTabToNewMainwindow(index);
-
-    // 빈 메인위도우를 지운다.
-    CWindowManager::removeEmptyWindow();
-}
-
-
-
-void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
-{
     // Create Window
     MainWindow* newMainWindow = new MainWindow (NULL);
     newMainWindow->setParentMainWindow(CWindowManager::findMainWindowOf(this));
-    CWindowManager::getInstance()->items()->insert(newMainWindow);
 
     // Find Widget and connect
-    Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
+    Form* tearOffWidget = dynamic_cast <Form*> (widget (index));
 
     /****************************************
      * 주의
@@ -91,7 +80,7 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
      * 탭순서를 바꾸는 중일 경우(마우스로 좌우이동)
      * 탭이 삭제되면 죽는다.
      ****************************************/
-    this->removeTab(srcTabIndex);
+    this->removeTab(index);
 
     newMainWindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();

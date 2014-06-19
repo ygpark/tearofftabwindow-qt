@@ -28,9 +28,6 @@ protected:
 
 private:
     void attachTab(int srcTabIndex, MainWindow* mainwindow);
-    void attachTabToNewMainwindow(int srcTabIndex);
-    //void setTabWidth(int width = -1);
-
 
 public slots:
     void slotTabDetachRequested (int index);
