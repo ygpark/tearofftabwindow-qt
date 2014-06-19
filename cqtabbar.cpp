@@ -11,7 +11,9 @@
 #include <QApplication>
 #include <QDrag>
 #include <QTimer>
+#include <QTime>
 #include <QDebug>
+#include <QThread>
 #if QT_VERSION >= 0x050000
 #include <QScreen>
 #endif
@@ -41,8 +43,10 @@ void CQTabBar::initialize()
     //탭 우측에 종료버튼(x)을 표시한다.
     setMovable (true);
 
-    m_timer = new QTimer(this);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(slotTimer_timeout()));
+    m_time = new QTime();
+
+    m_eventLoop = new QTimer(this);
+    connect(m_eventLoop, SIGNAL(timeout()), this, SLOT(slotEventLoop_timeout()));
 }
 
 
@@ -67,23 +71,56 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
 
     if (event->button() == Qt::LeftButton) {
         m_selectedTabIndex = tabAt(event->pos());
-        m_timer->start(10);
+        m_selectedPos = QCursor::pos();
+        m_eventLoop->start(10);
+    }
+}
+
+void CQTabBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if(count() > 1) {
+        QTabBar::mouseMoveEvent(event);
     }
 }
 
 
 
 /**
- * @brief
+ * @brief 타이머 이벤트 핸들러
+ * 탭을 클릭하면 시작한다.
  */
-void CQTabBar::slotTimer_timeout()
+void CQTabBar::slotEventLoop_timeout()
 {
+    /*****************************************************************
+     * 주의!
+     *****************************************************************
+     * x축으로 100픽셀 이상 이동하면 탭을 떼어내지 못하게 한다.
+     * 왜냐하면 mouseMoveEvent를 완전히 중지할 수 없기 때문이다.
+     * 아래 조건문에서 QTabBar::mouseMoveEvent (finishMoveEvent) 호출을 통해
+     * 이벤트를 중단하려고 하였으나 탭을 잡고 좌우로 흔드는 경우에 이벤트가 중단되지
+     * 않아서 충돌이 발생하였다.
+     ******************************************************************/
+    if(count() > 1 && abs(m_selectedPos.x()- QCursor::pos().x()) > 100) {
+        m_eventLoop->stop();
+        return;
+    }
+
+
+    // 탭이 하나인 경우 창을 이동한다.
+    if(count() == 1 && qApp->mouseButtons() == Qt::LeftButton) {
+        m_eventLoop->stop();
+        emit moveMainWindowRequested();
+    }
+
+
     MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
-    if(!CWindowManager::isCursorOnTabWithEmptyArea(mainWindow)) {
 
-        m_timer->stop();
+    if(count() > 1 && qApp->mouseButtons() == Qt::LeftButton &&
+            !CWindowManager::isCursorOnTabWithEmptyArea(mainWindow)) {
 
-        // 탭순서를 변경중이었다면 새 탭을 생성하기 위하여 mouseMoveEvent를 중지한다.
+        m_eventLoop->stop();
+
+        // mouseMoveEvent를 중지한다.
         {
             QMouseEvent* finishMoveEvent = new QMouseEvent (QEvent::MouseMove, QPoint(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
             QTabBar::mouseMoveEvent (finishMoveEvent);
@@ -91,49 +128,7 @@ void CQTabBar::slotTimer_timeout()
             finishMoveEvent = NULL;
         }
 
-        if(qApp->mouseButtons() == Qt::LeftButton &&
-           this->count() > 1)
-        {
-            emit tabDetachRequested (m_selectedTabIndex);
-
-        } else if(qApp->mouseButtons() == Qt::LeftButton &&
-                  this->count() == 1)
-        {
-            emit moveMainWindowRequested();
-        }
-
-
+        emit tabDetachRequested (m_selectedTabIndex);
     }
 }
 
-
-
-/**
- * @brief dragEnterEvent 이벤트 핸들러
- * @param event
- * @see CQTabWindow::slotTabDetachRequested()
- */
-void CQTabBar::dragEnterEvent(QDragEnterEvent* event)
-{
-    qDebug() << "dragEnterEvent(QDragEnterEvent* event)";
-
-    QTabBar::dragEnterEvent(event);
-
-
-}
-
-
-
-void CQTabBar::dragMoveEvent(QDragMoveEvent* event)
-{
-    QTabBar::dragMoveEvent (event);
-    //event->acceptProposedAction();
-}
-
-
-
-void CQTabBar::dropEvent(QDropEvent* event)
-{
-    QTabBar::dropEvent(event);
-    qDebug() << "CQTabBar::dropEvent";
-}

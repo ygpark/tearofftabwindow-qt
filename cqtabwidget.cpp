@@ -16,18 +16,36 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
     QTabWidget(parent)
 {
     this->initialize();
+}
 
-    m_tabbar = new CQTabBar(this);
+
+
+/**
+ * @brief 소멸자
+ *      - m_tabbar를 delete하면 충돌이 발생한다.
+ */
+CQTabWidget::~CQTabWidget()
+{
+    m_tabbar->deleteLater();
+}
+
+
+/**
+ * @brief 초기화 함수
+ *      - CQTabBar(this)로 초기화하면 소멸자에서 충돌이 발생하므로 주의
+ */
+void CQTabWidget::initialize()
+{
+    m_tabWidth = 200;
+    m_tabbar = new CQTabBar();
+
     this->setTabBar(m_tabbar);
     this->setMovable(true);
     this->setTabsClosable(true);
 
-    connect(m_tabbar, SIGNAL(tabDetachRequested(int)),
-            this, SLOT(slotTabDetachRequested(int)));
-    connect(m_tabbar, SIGNAL(moveMainWindowRequested()),
-            this, SLOT(slotMoveMainWindowRequested()));
-    connect(m_tabbar, SIGNAL(tabCloseRequested(int)),
-            this, SLOT(slotTabCloseRequested(int)));
+    connect(m_tabbar, SIGNAL(tabDetachRequested(int)),  this, SLOT(slotTabDetachRequested(int)));
+    connect(m_tabbar, SIGNAL(moveMainWindowRequested()),this, SLOT(slotMoveMainWindowRequested()));
+    connect(m_tabbar, SIGNAL(tabCloseRequested(int)),   this, SLOT(slotTabCloseRequested(int)));
 
     // Apply styleSheet
     QFile file(":/css/cqtabwidget.css");
@@ -43,25 +61,7 @@ CQTabWidget::CQTabWidget(QWidget *parent) :
 
     this->slotForceUpdateTabWidth();
 
-    m_tabWidth = 200;
     this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
-}
-
-
-
-/**
- * @brief 소멸자
- *      - m_tabbar는 parent에게 삭제를 위임한다.
- */
-CQTabWidget::~CQTabWidget()
-{
-}
-
-
-
-void CQTabWidget::initialize()
-{
-    m_tabbar = NULL;
 }
 
 

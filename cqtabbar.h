@@ -4,6 +4,7 @@
 #include <QTabBar>
 
 class QTimer;
+class QTime;
 
 class CQTabBar : public QTabBar
 {
@@ -19,9 +20,7 @@ public slots:
     
 protected:
     void mousePressEvent(QMouseEvent* event);
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dragMoveEvent(QDragMoveEvent* event);
-    void dropEvent(QDropEvent* event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 signals:
     // Detach Tab
@@ -31,7 +30,7 @@ signals:
     void OnMoveTab (int fromIndex, int toIndex);
 
 protected slots:
-    void slotTimer_timeout();
+    void slotEventLoop_timeout();
 
 private:
     QPoint       m_dragDropedPos;
@@ -42,8 +41,14 @@ private:
     int          m_dragCurrentIndex;
     int          m_selectedTabIndex;
 
-    QTimer      *m_timer;
-
+    QTimer      *m_eventLoop;
+    QPoint       m_selectedPos;
+    /*
+     * mouseMoveEvent가 끝나는 시간을 측정하기 위한 시간 측정기
+     * 탭순서를 좌우로 반복적으로 이동중일 때 탭이 떨어져 나오면 mouseMoveEvent와 충돌이 나므로
+     * mouseMoveEvent가 끝난 후 일정 시간이 흐르면 창을 떼어낸다.
+     */
+    QTime       *m_time;
 };
 
 #endif // CQTABBAR_H
