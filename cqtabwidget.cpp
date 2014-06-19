@@ -44,7 +44,6 @@ void CQTabWidget::initialize()
     this->setTabsClosable(true);
 
     connect(m_tabbar, SIGNAL(tabDetachRequested(int)),  this, SLOT(slotTabDetachRequested(int)));
-    connect(m_tabbar, SIGNAL(moveMainWindowRequested()),this, SLOT(slotMoveMainWindowRequested()));
     connect(m_tabbar, SIGNAL(tabCloseRequested(int)),   this, SLOT(slotTabCloseRequested(int)));
 
     // Apply styleSheet
@@ -62,20 +61,6 @@ void CQTabWidget::initialize()
     this->slotForceUpdateTabWidth();
 
     this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
-}
-
-
-
-void CQTabWidget::MoveTab(int fromIndex, int toIndex)
-{
-    qDebug() << "CQTabWidget::MoveTab";
-    QWidget* w = widget(fromIndex);
-    QIcon icon = tabIcon(fromIndex);
-    QString text = tabText(fromIndex);
-
-    removeTab (fromIndex);
-    insertTab (toIndex, w, icon, text);
-    setCurrentIndex (toIndex);
 }
 
 
@@ -108,7 +93,7 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
      ****************************************/
     this->removeTab(srcTabIndex);
 
-    int newIndex = newMainWindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    newMainWindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 
     // Make first active
@@ -120,15 +105,12 @@ void CQTabWidget::attachTabToNewMainwindow(int srcTabIndex)
     //탭을 떼어낸 후 계속 마우스 버튼이 클릭된 상태라면 메인 윈도우가 마우스를 따라다니게 만든다.
     newMainWindow->startMouseTracking();
     newMainWindow->show ();
-
-    emit tabAttached(newIndex);
 }
 
 
 /**
  * @brief [slot] 탭의 간격을 계산하여 적절한 넓이로 다시 그린다.
  *        단, 마우스 위치와 관계없이 강제적으로 그린다.
- * @fn CQTabWidget::slotForceUpdateTabWidth
  * @see CQTabWidget::slotUpdateTabWidth(bool)
  */
 void CQTabWidget::slotForceUpdateTabWidth()
@@ -142,8 +124,7 @@ void CQTabWidget::slotForceUpdateTabWidth()
  * @brief [slot] 탭의 간격을 계산하여 적절한 넓이로 다시 그린다.
  *        단, 마우스가 탭 위에 올라가 있는 상태라면 다시 그리지 않는다.
  *        왜냐하면 마우스를 옮기지 않고 탭을 연속적으로 닫을 수 있기 때문이다.
- * @fn CQTabWidget::slotUpdateTabWidth
- * @param force
+ * @param force true면 무조건 탭을 다시 그리고 false면 마우스가 탭 바깥에 있을때문 다시 그린다.
  */
 void CQTabWidget::slotUpdateTabWidth(bool force)
 {
@@ -167,17 +148,9 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
         m_tabWidth = 200;
     }
 
-    // 강제 옵션이 켜져있지 않다면, 마우스가 탭 위에 올라가 있지 않은 경우에만 사이즈를 조절한다.
-    // 그 이유는 탭을 연속적으로 닫을 때 마우스를 옮기지 않기 위해서다.
     if(!this->customTabBar()->underMouse() || force) {
         this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
     }
-}
-
-void CQTabWidget::slotMoveMainWindowRequested()
-{
-    MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
-    mainWindow->startMouseTracking();
 }
 
 
@@ -196,8 +169,6 @@ int CQTabWidget::addTab(Form *widget, const QString &tabName)
     connect(widget, SIGNAL(resized()), this, SLOT(slotForceUpdateTabWidth()));
     // 탭이 새로 추가되면 탭 간격을 다시 조절한다.
     slotForceUpdateTabWidth();
-    // tabAttached(int) 시그널을 발생시킨다.
-    emit tabAttached(newIndex);
 
     return newIndex;
 }
@@ -211,6 +182,11 @@ CQTabBar *CQTabWidget::customTabBar()
 
 
 
+/**
+ * @brief paintEvent 이벤트 핸들러
+ * 탭 간격을 조절하기 위해 사용한다.
+ * @param event
+ */
 void CQTabWidget::paintEvent(QPaintEvent *event)
 {
     this->slotUpdateTabWidth(false);
@@ -219,6 +195,11 @@ void CQTabWidget::paintEvent(QPaintEvent *event)
 
 
 
+/**
+ * @brief resizeEvent 이벤트 핸들러
+ * 탭 간격을 조절하기 위해 사용한다.
+ * @param event
+ */
 void CQTabWidget::resizeEvent(QResizeEvent *event)
 {
     this->slotUpdateTabWidth(false);
@@ -229,11 +210,10 @@ void CQTabWidget::resizeEvent(QResizeEvent *event)
 
 void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
 {
-    Form* tearOffWidget = dynamic_cast <Form*> (widget (srcTabIndex));
+    Form* tearOffWidget = static_cast <Form*>(this->widget(srcTabIndex));
     this->removeTab(srcTabIndex);
-    int newIndex = mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
-    emit tabAttached(newIndex);
 }
 
 
@@ -241,7 +221,5 @@ void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
 void CQTabWidget::slotTabCloseRequested(int index)
 {
     this->removeTab(index);
-
     CWindowManager::removeEmptyWindow();
-    emit tabClosed(index);
 }

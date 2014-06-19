@@ -3,6 +3,7 @@
 /* Local */
 #include "cqtabwidget.h"
 #include "cwindowmanager.h"
+#include "mainwindow.h"
 
 /* Qt */
 #include <QMouseEvent>
@@ -42,8 +43,6 @@ void CQTabBar::initialize()
     setSelectionBehaviorOnRemove (QTabBar::SelectLeftTab);
     //탭 우측에 종료버튼(x)을 표시한다.
     setMovable (true);
-
-    m_time = new QTime();
 
     m_eventLoop = new QTimer(this);
     connect(m_eventLoop, SIGNAL(timeout()), this, SLOT(slotEventLoop_timeout()));
@@ -100,23 +99,32 @@ void CQTabBar::slotEventLoop_timeout()
      * 이벤트를 중단하려고 하였으나 탭을 잡고 좌우로 흔드는 경우에 이벤트가 중단되지
      * 않아서 충돌이 발생하였다.
      ******************************************************************/
-    if(count() > 1 && abs(m_selectedPos.x()- QCursor::pos().x()) > 100) {
+    if(count() > 1 &&
+       abs(m_selectedPos.x()- QCursor::pos().x()) > 100)
+    {
         m_eventLoop->stop();
         return;
     }
 
 
     // 탭이 하나인 경우 창을 이동한다.
-    if(count() == 1 && qApp->mouseButtons() == Qt::LeftButton) {
+    if(count() == 1 &&
+       qApp->mouseButtons() == Qt::LeftButton)
+    {
         m_eventLoop->stop();
-        emit moveMainWindowRequested();
+        MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
+        if(mainWindow) {
+            mainWindow->startMouseTracking();
+        }
     }
 
 
     MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
 
-    if(count() > 1 && qApp->mouseButtons() == Qt::LeftButton &&
-            !CWindowManager::isCursorOnTabWithEmptyArea(mainWindow)) {
+    if(count() > 1 &&
+       qApp->mouseButtons() == Qt::LeftButton &&
+       !CWindowManager::isCursorOnTabWithEmptyArea(mainWindow))
+    {
 
         m_eventLoop->stop();
 
