@@ -106,10 +106,11 @@ void CQTabBar::slotEventLoop_timeout()
        qApp->mouseButtons() == Qt::LeftButton)
     {
         m_eventLoop->stop();
-        MainWindow *mainWindow = CWindowManager::findMainWindowOf(this);
-        if(mainWindow) {
-            mainWindow->startMouseTracking();
+        CQTabWidget *tabWidget = static_cast<CQTabWidget*>(parent());
+        if(tabWidget) {
+            tabWidget->startEventLoop();
         }
+        return;
     }
 
 
@@ -129,6 +130,7 @@ void CQTabBar::slotEventLoop_timeout()
         finishMoveEvent = NULL;
 
         emit tabDetachRequested (m_selectedTabIndex);
+        return;
     }
 }
 

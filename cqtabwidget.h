@@ -5,10 +5,10 @@
 #include <QResizeEvent>
 
 
-
 class CQTabBar;
 class MainWindow;
 class Form;
+class QTimer;
 
 
 class CQTabWidget : public QTabWidget
@@ -18,26 +18,36 @@ public:
     explicit CQTabWidget(QWidget *parent = 0);
     virtual ~CQTabWidget();
 
-    void initialize();
     virtual int addTab(Form *widget, const QString &);
+
     CQTabBar* customTabBar();
 
+    void startEventLoop();
+    void stopEventLoop();
+
 protected:
+
     virtual void paintEvent(QPaintEvent *event);
     virtual void resizeEvent (QResizeEvent *event);
 
 private:
+
+    void initialize();
+
     void attachTab(int srcTabIndex, MainWindow* mainwindow);
 
 public slots:
+
     void slotTabDetachRequested (int index);
-    void slotTabCloseRequested(int);
     void slotForceUpdateTabWidth();
     void slotUpdateTabWidth(bool force);
+    void slotTabCloseRequested(int index);
+    void slotEventLoop_timeout();
 
 public:
     CQTabBar *m_tabbar;
-    int m_tabWidth;
+    QTimer   *m_eventLoop;
+    int       m_tabWidth;
 };
 
 #endif // CQTABWIDGET_H

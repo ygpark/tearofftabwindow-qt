@@ -37,7 +37,7 @@ CQTabWidget::~CQTabWidget()
 void CQTabWidget::initialize()
 {
     m_tabWidth = 200;
-    m_tabbar = new CQTabBar();
+    m_tabbar = new CQTabBar(this);
 
     this->setTabBar(m_tabbar);
     this->setMovable(true);
@@ -61,6 +61,10 @@ void CQTabWidget::initialize()
     this->slotForceUpdateTabWidth();
 
     this->setStyleSheet(QString("QTabBar::tab { height: 40px; width: %1px; }").arg(m_tabWidth));
+
+    // Event Loop
+    m_eventLoop = new QTimer(this);
+    connect(m_eventLoop, SIGNAL(timeout()), this, SLOT(slotEventLoop_timeout()));
 }
 
 
@@ -91,7 +95,7 @@ void CQTabWidget::slotTabDetachRequested (int index)
     }
 
     //탭을 떼어낸 후 계속 마우스 버튼이 클릭된 상태라면 메인 윈도우가 마우스를 따라다니게 만든다.
-    newMainWindow->startMouseTracking();
+    newMainWindow->getTabWidget()->startEventLoop();
     newMainWindow->show ();
 }
 
@@ -141,6 +145,12 @@ void CQTabWidget::slotUpdateTabWidth(bool force)
     }
 }
 
+void CQTabWidget::slotTabCloseRequested(int index)
+{
+    this->removeTab(index);
+    CWindowManager::removeEmptyWindow();
+}
+
 
 
 int CQTabWidget::addTab(Form *widget, const QString &tabName)
@@ -166,6 +176,16 @@ int CQTabWidget::addTab(Form *widget, const QString &tabName)
 CQTabBar *CQTabWidget::customTabBar()
 {
     return this->m_tabbar;
+}
+
+void CQTabWidget::startEventLoop()
+{
+    m_eventLoop->start(10);
+}
+
+void CQTabWidget::stopEventLoop()
+{
+    m_eventLoop->stop();
 }
 
 
@@ -196,18 +216,55 @@ void CQTabWidget::resizeEvent(QResizeEvent *event)
 
 
 
-void CQTabWidget::attachTab(int srcTabIndex, MainWindow* mainwindow)
+/**
+ * @brief 팁을
+ */
+void CQTabWidget::attachTab(int from, MainWindow* to)
 {
-    Form* tearOffWidget = static_cast <Form*>(this->widget(srcTabIndex));
-    this->removeTab(srcTabIndex);
-    mainwindow->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
+    Form* tearOffWidget = static_cast <Form*>(this->widget(from));
+    this->removeTab(from);
+    to->m_tabwidget->addTab(tearOffWidget, tearOffWidget->getTabName());
     tearOffWidget->show();
 }
 
 
 
-void CQTabWidget::slotTabCloseRequested(int index)
+/**
+ * @brief 이벤트 루프
+ */
+void CQTabWidget::slotEventLoop_timeout()
 {
-    this->removeTab(index);
-    CWindowManager::removeEmptyWindow();
+    MainWindow *windowToGo = 0;
+    MainWindow *currentMainWindow = CWindowManager::findMainWindowOf(this);
+    MainWindow *parentOfCurrent   = currentMainWindow->getParentMainWindow();
+    QPoint pos = this->customTabBar()->getDistanceFromMainWindowLeftTopToCursor();
+
+    int diffX = (pos.x() == 0) ? 190 : pos.x();
+    int diffY = (pos.y() == 0) ? 50 : pos.y();
+
+    // 윈도우를 이동시킨다. 이 때 좌표를 약간 이동하여 마치 탭을 드래그하는 효과를 준다.
+    currentMainWindow->move(QCursor::pos().x()-diffX, QCursor::pos().y()-diffY);
+
+    // 마우스로 드래그 중인 MainWindow의 Tab을 다른 MainWindow에 붙인다.
+    if(!CWindowManager::isCursorOnTabWithEmptyArea(parentOfCurrent)) {
+
+        windowToGo = CWindowManager::findMainWindowByCursorOnTabWithout(currentMainWindow);
+        if(windowToGo != 0) {
+
+            this->stopEventLoop();
+
+            windowToGo->addTab(reinterpret_cast<Form*>(widget(0)));
+            windowToGo->raise();
+            windowToGo->activateWindow();
+            CWindowManager::removeEmptyWindow();
+
+            return;
+        }
+    }
+
+    // 마우스 좌측 버튼이 릴리즈되면 이동을 중지한다.
+    if(QApplication::mouseButtons() != Qt::LeftButton) {
+        currentMainWindow->setParentMainWindow(0);
+        this->stopEventLoop();
+    }
 }
