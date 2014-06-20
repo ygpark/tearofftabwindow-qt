@@ -66,9 +66,6 @@ void MainWindow::initialize()
     m_timerProcessAfterTabDetached = new QTimer(this);
     connect(m_timerProcessAfterTabDetached, SIGNAL(timeout()), this, SLOT(slotProcessAfterTabDetached_timeout()));
 
-    m_timerDeleteLaterSafe = new QTimer(this);
-    connect(m_timerDeleteLaterSafe, SIGNAL(timeout()), this, SLOT(slotDeleteLaterSafe_timeout()));
-
     m_isMouseTrackingState = false;
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -104,21 +101,6 @@ void MainWindow::stopMouseTracking()
     setParentMainWindow(0);
     m_isMouseTrackingState = false;
     m_timerProcessAfterTabDetached->stop();
-}
-
-
-
-/**
- * @brief 안전하게 윈도우를 닫는다.
- * 자기자신을 delete하면 충돌이 발생할 수 있기 때문에 QTimer를 사용해서 일정 시간
- * 뒤에 close()를 호출한다. 윈도우에 Qt::WA_DeleteOnClose 속성을 설정했기 때문에
- * 윈도우의 close() 메소드가 호출되면 자동으로 delete된다.
- *
- */
-
-void MainWindow::deleteLaterSafe()
-{
-    m_timerDeleteLaterSafe->start(50);
 }
 
 
@@ -218,24 +200,5 @@ void MainWindow::slotProcessAfterTabDetached_timeout()
     // 마우스 좌측 버튼이 릴리즈되면 이동을 중지한다.
     if(QApplication::mouseButtons() != Qt::LeftButton) {
         stopMouseTracking();
-    }
-}
-
-
-
-/**
- * @brief m_timerDeleteLaterSafe메소드의 timeout() 이벤트 핸들러
- *
- * 안전하게 창을 닫기위해 사용한다.
- *
- * 탭이 attach된 후 마우스가 클릭된 상태로 메인윈도우를 delete하면
- * 충돌이 발생하는데 이걸 막기위해 추가되었다.
- *
- * @see MainWindow::deleteLaterSafe(), QWidget::setAttribute()
- */
-void MainWindow::slotDeleteLaterSafe_timeout()
-{
-    if(qApp->mouseButtons() == Qt::NoButton) {
-        this->close();
     }
 }

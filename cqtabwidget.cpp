@@ -68,11 +68,11 @@ void CQTabWidget::initialize()
 void CQTabWidget::slotTabDetachRequested (int index)
 {
     // Create Window
-    MainWindow* newMainWindow = new MainWindow (NULL);
+    MainWindow* newMainWindow = new MainWindow();
     newMainWindow->setParentMainWindow(CWindowManager::findMainWindowOf(this));
 
     // Find Widget and connect
-    Form* tearOffWidget = dynamic_cast <Form*> (widget (index));
+    Form* tearOffWidget = dynamic_cast <Form*> (widget(index));
 
     /****************************************
      * 주의
@@ -86,8 +86,7 @@ void CQTabWidget::slotTabDetachRequested (int index)
     tearOffWidget->show();
 
     // Make first active
-    if (0 < count ())
-    {
+    if (0 < count ()) {
         setCurrentIndex (0);
     }
 

@@ -25,7 +25,6 @@ public:
 
     void startMouseTracking();
     void stopMouseTracking();
-    void deleteLaterSafe();
     void setParentMainWindow(MainWindow* parent);
     MainWindow* getParentMainWindow();
 
@@ -40,7 +39,6 @@ protected:
 public slots:
     void slotAddTabButton_clicked();
     void slotProcessAfterTabDetached_timeout();
-    void slotDeleteLaterSafe_timeout();
 
 private:
     Ui::MainWindow *ui;
@@ -49,8 +47,6 @@ public:
     QPushButton *m_btnAddTab;
     // 탭이 드래그 중일 때 이벤트를 처리하기 위한 타이머
     QTimer      *m_timerProcessAfterTabDetached;
-    // 탭이 다른 MainWindow로 이동하여 빈 MainWindow를 안전하게 삭제하기 위한 타이머
-    QTimer      *m_timerDeleteLaterSafe;
     // 탭이 떨어져나온 MainWindow를 기억하기 위한 객체. 마우스가 Release상태가 되면 NULL이 된다.
     MainWindow  *m_parentMainWindow;
     bool         m_isMouseTrackingState;
