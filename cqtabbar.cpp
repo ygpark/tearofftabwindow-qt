@@ -66,31 +66,6 @@ QPoint CQTabBar::getDistanceFromMainWindowLeftTopToCursor()
 
 
 /**
- * @brief 소멸자
- */
-QPoint CQTabBar::getSelectedGlobalPos()
-{
-    return m_selectedGlobalPos;
-}
-
-
-
-/**
- * @brief paintEvent 이벤트 핸들러
- * @param event
- */
-void CQTabBar::paintEvent(QPaintEvent* event)
-{
-    QTabBar::paintEvent(event);
-    QPainterPath path;
-    path.moveTo(20, 80);
-    path.lineTo(20, 30);
-    path.cubicTo(80, 0, 50, 50, 80, 80);
-}
-
-
-
-/**
  * @brief mousePressEvent 이벤트 핸들러
  *  왼쪽 버튼으로 탭을 클릭하면 드래그가 시작되었음을 알린다.
  *
@@ -100,8 +75,6 @@ void CQTabBar::mousePressEvent(QMouseEvent* event)
     QTabBar::mousePressEvent(event);
     if (event->button() == Qt::LeftButton) {
         m_selectedTabIndex = tabAt(event->pos());
-        m_selectedGlobalPos = QCursor::pos();
-
         m_distanceFromMainWindowLeftTopToCursor = QCursor::pos() - CWindowManager::findMainWindowOf(this)->pos();
         m_eventLoop->start(10);
     }
