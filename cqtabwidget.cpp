@@ -231,6 +231,8 @@ void CQTabWidget::attachTab(int from, MainWindow* to)
 
 /**
  * @brief 이벤트 루프
+ *
+ * @see CQTabWidget::slotTabDetachRequested
  */
 void CQTabWidget::slotEventLoop_timeout()
 {
